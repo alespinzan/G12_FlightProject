@@ -1,0 +1,11 @@
+from node import * 
+
+n1 = node ('aaa', 0, 0) 
+n2 = node ('bbb', 3, 4) 
+print (Distance(n1, n2)) 
+print (AddNeighbor(n1, n2)) 
+print (AddNeighbor(n1, n2)) 
+print (n1.__dict__) 
+
+for n in n1.nl:
+    print ( n.__dict__) 
