@@ -31,7 +31,8 @@ def AddSegment(g, nameSegment, nameOrigin, nameDestination):
         else:
             d += 1
     Dest = g.lnodes[d]
-    seg = segment(nameOrigin + "-" + nameDestination, Orig, Dest)
+    nameSegment = nameOrigin + "-" + nameDestination
+    seg = segment(nameSegment, Orig, Dest)
     seg.name = nameSegment
     g.lsegments.append(seg)
     AddNeighbor(Orig, Dest)
@@ -52,25 +53,34 @@ def GetClosest(g, x, y):
 def Plot(g):
     fig, ax = plt.subplots()
 
+    # Dibujar los nodos
     for node in g.lnodes:
-        ax.plot(node.Ox, node.Oy, 'o')
-        ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)
+        ax.plot(node.Ox, node.Oy, 'ko')  # Dibujar el nodo como un punto
+        ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)  # Etiqueta del nodo
 
+    # Dibujar los segmentos como flechas
     for segment in g.lsegments:
+        x_start, y_start = segment.origin.Ox, segment.origin.Oy
+        x_end, y_end = segment.destination.Ox, segment.destination.Oy
 
-        x_values = [segment.origin.Ox, segment.destination.Ox]
-        y_values = [segment.origin.Oy, segment.destination.Oy]
+        # Dibujar una flecha para el segmento
+        ax.annotate(
+            '',  # Sin texto
+            xy=(x_end, y_end),  # Coordenadas del destino
+            xytext=(x_start, y_start),  # Coordenadas del origen
+            arrowprops=dict(arrowstyle='->', color='blue', lw=1.5)  # Estilo de la flecha
+        )
 
-        ax.plot(x_values, y_values, 'b-' )
+        # Etiqueta del costo en el medio del segmento
+        mid_x = (x_start + x_end) / 2
+        mid_y = (y_start + y_end) / 2
+        ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='black', ha='center')
 
-        mid_x = (segment.origin.Ox + segment.destination.Ox) / 2
-        mid_y = (segment.origin.Oy + segment.destination.Oy) / 2
-        ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='red', ha='center')
+    # Configuración de los ejes y título
     ax.set_xlabel('X Coordinate')
     ax.set_ylabel('Y Coordinate')
-    ax.set_title('Graph Visualization')
-    plt.legend()
-    plt.grid(True)
+    ax.set_title('Graph Visualization with Arrows')
+    ax.grid(True, linestyle='--', linewidth=0.5, color='red')
     plt.show()
     
 def PlotNode(g,nameOrigin):
@@ -98,7 +108,7 @@ def PlotNode(g,nameOrigin):
             ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=10)
 
     for segment in g.lsegments:
-        if segment.origin == origin_node or segment.destination == origin_node:
+        if segment.origin == origin_node:
             x_values = [segment.origin.Ox, segment.destination.Ox]
             y_values = [segment.origin.Oy, segment.destination.Oy]
 
@@ -106,12 +116,12 @@ def PlotNode(g,nameOrigin):
 
             mid_x = (segment.origin.Ox + segment.destination.Ox) / 2
             mid_y = (segment.origin.Oy + segment.destination.Oy) / 2
-            ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='red', ha='center')
+            ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='black', ha='center')
 
     ax.set_xlabel('X Coordinate')
     ax.set_ylabel('Y Coordinate')
     ax.set_title(f'Graph Visualization: {nameOrigin} and Neighbors')
-    plt.grid(True)
+    ax.grid(True, linestyle='--', linewidth=0.5, color='red')
     plt.show()
     return True
 
@@ -127,8 +137,8 @@ def readfile(filename):
                 x = float(parts[1])
                 y = float(parts[2])
                 AddNode(gr, node(name, x, y))
-        for i in range(len(gr.lnodes)):
-            next_index = (i + 1) % len(gr.lnodes)  # Wrap around to the start of the list
+        for i in range(len(gr.lnodes)):    # Cambiar el addSegmet
+            next_index = (i + 1) % len(gr.lnodes) 
             AddSegment(gr, gr.lnodes[i].name + "-" + gr.lnodes[next_index].name, gr.lnodes[i].name, gr.lnodes[next_index].name)
                 
     return gr

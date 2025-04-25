@@ -49,7 +49,6 @@ def update_node_list():
     for n in current_graph.lnodes:
         listbox_nodes.insert(tk.END, n.name)
 
-# New functionalities
 def add_node():
     global current_graph
     if not current_graph:

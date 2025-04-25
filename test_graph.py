@@ -45,8 +45,3 @@ def CreateGraph_1 ():
     return G 
  
 G = CreateGraph_1 () 
-
-# Read the graph from file
-graph = readfile("data.txt")
-
-
