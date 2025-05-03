@@ -110,6 +110,7 @@ def load_current_graph():
 # --- GUI SETUP ---
 
 root = tk.Tk()
+root.geometry("600x400")
 root.title("Graph Viewer")
 
 frame_buttons = tk.Frame(root)

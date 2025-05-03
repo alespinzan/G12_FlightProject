@@ -1,3 +1,4 @@
+from path import *
 from segment import *
 from node import *
 import matplotlib.pyplot as plt
@@ -50,31 +51,36 @@ def GetClosest(g, x, y):
     closestNode = g.lnodes[distances.index(minDistance)]
     return closestNode
 
+
+
 def Plot(g):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots()  
 
-    # Dibujar los nodos
-    for node in g.lnodes:
-        ax.plot(node.Ox, node.Oy, 'ko')  # Dibujar el nodo como un punto
-        ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)  # Etiqueta del nodo
+    def DrawBaseGraph(g, ax):
+        for node in g.lnodes:
+            ax.plot(node.Ox, node.Oy, 'ko')  # Dibujar el nodo como un punto
+            ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)  # Etiqueta del nodo
 
-    # Dibujar los segmentos como flechas
-    for segment in g.lsegments:
-        x_start, y_start = segment.origin.Ox, segment.origin.Oy
-        x_end, y_end = segment.destination.Ox, segment.destination.Oy
+        # Dibujar los segmentos como flechas
+        for segment in g.lsegments:
+            x_start, y_start = segment.origin.Ox, segment.origin.Oy
+            x_end, y_end = segment.destination.Ox, segment.destination.Oy
 
-        # Dibujar una flecha para el segmento
-        ax.annotate(
-            '',  # Sin texto
-            xy=(x_end, y_end),  # Coordenadas del destino
-            xytext=(x_start, y_start),  # Coordenadas del origen
-            arrowprops=dict(arrowstyle='->', color='blue', lw=1.5)  # Estilo de la flecha
-        )
+            # Dibujar una flecha para el segmento
+            ax.annotate(
+                '',  # Sin texto
+                xy=(x_end, y_end),  # Coordenadas del destino
+                xytext=(x_start, y_start),  # Coordenadas del origen
+                arrowprops=dict(arrowstyle='->', color='blue', lw=1.5)  # Estilo de la flecha
+            )
 
-        # Etiqueta del costo en el medio del segmento
-        mid_x = (x_start + x_end) / 2
-        mid_y = (y_start + y_end) / 2
-        ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='black', ha='center')
+            # Etiqueta del costo en el medio del segmento
+            mid_x = (x_start + x_end) / 2
+            mid_y = (y_start + y_end) / 2
+            ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='black', ha='center')
+
+    # Call DrawBaseGraph to utilize it
+    DrawBaseGraph(g, ax)
 
     # Configuración de los ejes y título
     ax.set_xlabel('X Coordinate')
@@ -170,27 +176,42 @@ def delete_node(g, node_name):
 
     return True  # Nodo eliminado con éxito
 
-def closestPath(g, startNodeName, endNodeName):
+def findShortestPath(g, origin, destination):
+   
+    evpaths = []  # Lista de caminos
+    initial_path = Path()  # Crear un camino inicial
+    initial_path.nodes.append(origin)  # Agregar el nodo de origen al camino inicial
+    initial_path.cost = 0  # El costo inicial es 0
+    evpaths.append(initial_path)  # Agregar el camino inicial a la lista de caminos
 
-    startNode = None
-    endNode = None
+    while len(evpaths) > 0:
+        # Ordenar los caminos por costo estimado (costo actual + heurística)
+        evpaths.sort(key=lambda p: p.cost + Distance(p.nodes[-1], destination))
+        current_path = evpaths.pop(0)  # Remover el camino con el menor costo y guardarlo
 
-    for i in g.lnodes:
-        if node.name == startNodeName:
-            startNode = g.lnodes[i]
-            break
-    for i in g.lnodes:
-        if node.name == endNodeName:
-            endNode = g.lnodes[i]
-            break
-    
-    if not startNode or not endNode:
-        return "path can't be defined"
-    else:
-        next
-    
-    paths = []
-    paths.append()
+        # Obtener el último nodo del camino actual
+        current_node = current_path.nodes[-1]
 
-    
+        # Si el último nodo es el destino, devolver el camino actual
+        if current_node == destination:
+            return current_path
+
+        # Explorar los vecinos del último nodo
+        for neighbor in current_node.nl:
+            # Si el vecino ya está en el camino actual, ignorarlo (evitar ciclos)
+            if neighbor in current_path.nodes:
+                continue
+
+            # Crear un nuevo camino con el vecino
+            new_path = Path()
+            new_path.nodes = current_path.nodes.copy()
+            new_path.nodes.append(neighbor)
+            new_path.cost = current_path.cost + Distance(current_node, neighbor)
+
+            # Agregar el nuevo camino a la lista de caminos
+            evpaths.append(new_path)
+
+    # Si la lista de caminos está vacía, no es posible llegar al destino
+    return None
+
 
