@@ -81,8 +81,7 @@ def delete_node():
         return
     name = simpledialog.askstring("Delete Node", "Enter node name to delete:")
     if name:
-        if delete_node(current_graph, name):  # Llamada corregida
-            Plot(current_graph)
+        if deleteNode(current_graph, name):  
             update_node_list()
         else:
             messagebox.showinfo("Error", f"Node '{name}' not found.")
@@ -90,7 +89,6 @@ def delete_node():
 def design_graph():
     global current_graph
     current_graph = Graph()
-    Plot(current_graph)
     update_node_list()
 
 def save_graph_to_file():
@@ -107,52 +105,113 @@ def load_current_graph():
     global current_graph
     return Plot(current_graph)
 
+def find_shotest_path():
+    global current_graph
+    if not current_graph:
+        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.")
+        return
+    start_node = simpledialog.askstring("Shortest Path", "Enter start node name:")
+    end_node = simpledialog.askstring("Shortest Path", "Enter end node name:")
+    
+    if start_node and end_node:
+        path = findShortestPath(current_graph, start_node, end_node)
+        if path:
+            PlotPath(current_graph, path)
+        else:
+            messagebox.showinfo("Error", f"No path found from '{start_node}' to '{end_node}'.")
+
+def show_reachable_nodes():
+    global current_graph
+    if not current_graph:
+        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.")
+        return
+    start_node = simpledialog.askstring("Reachable Nodes", "Enter start node name:")
+    if start_node:
+        reachable_nodes = ExplorePaths(current_graph, start_node)
+        if reachable_nodes:
+            PlotPaths(current_graph, reachable_nodes)
+        else:
+            messagebox.showinfo("Error, node not in graph")
+
 # --- GUI SETUP ---
 
 root = tk.Tk()
-root.geometry("600x400")
-root.title("Graph Viewer")
+root.geometry("900x500")
+root.title("Airways Visualizer")
 
-frame_buttons = tk.Frame(root)
-frame_buttons.pack(pady=10)
+# Root layout
+root.columnconfigure(index=0, weight=1)
+root.columnconfigure(index=1, weight=10)
+root.rowconfigure(index=0, weight=1)
+root.rowconfigure(index=1, weight=1)
+root.rowconfigure(index=2, weight=1)
 
-btn1 = tk.Button(frame_buttons, text="Show Example Graph", command=load_example_graph)
-btn1.grid(row=0, column=0, padx=5)
+# LoadGraphFrame set up:
+loadGraphFrame = tk.LabelFrame(root, text = "Load Graphs")
+loadGraphFrame.grid(row=0, column=0,padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+loadGraphFrame.rowconfigure(index=0, weight=1)
+loadGraphFrame.rowconfigure(index=1, weight=1)
+loadGraphFrame.columnconfigure(index=0, weight=1)
+loadGraphFrame.columnconfigure(index=1, weight=1)
 
-btn2 = tk.Button(frame_buttons, text="Show Invented Graph", command=load_invented_graph)
-btn2.grid(row=0, column=1, padx=5)
+btn1 = tk.Button(loadGraphFrame, text="Show Example Graph", command=load_example_graph)
+btn1.grid(row=0, column=0, padx=1, pady=1)
 
-btn3 = tk.Button(frame_buttons, text="Load Graph from File", command=load_graph_from_file)
-btn3.grid(row=0, column=2, padx=5)
+btn2 = tk.Button(loadGraphFrame, text="Load Graph from File", command=load_graph_from_file)
+btn2.grid(row=0, column=1, padx=1, pady=1)
 
-btn5 = tk.Button(frame_buttons, text="Add Node", command=add_node)
-btn5.grid(row=1, column=0, padx=5)
+btn3 = tk.Button(loadGraphFrame, text="Design Graph", command=design_graph)
+btn3.grid(row=1, column=0, padx=1, pady=1)
 
-btn6 = tk.Button(frame_buttons, text="Add Segment", command=add_segment)
-btn6.grid(row=1, column=1, padx=5)
+btn4 = tk.Button(loadGraphFrame, text="Save Graph to File", command=save_graph_to_file)
+btn4.grid(row=1, column=1, padx=1, pady=1)
 
-btn7 = tk.Button(frame_buttons, text="Delete Node", command=delete_node)
-btn7.grid(row=1, column=2, padx=5)
+# current graph SetUP
+currentGraph = tk.LabelFrame(root, text = "Current Graph")
+currentGraph.grid(row=1, column=0,padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+currentGraph.rowconfigure(index=0, weight=1)
+currentGraph.rowconfigure(index=1, weight=1)
+currentGraph.columnconfigure(index=0, weight=1)
+currentGraph.columnconfigure(index=1, weight=1)
+currentGraph.columnconfigure(index=2, weight=4)
 
-btn8 = tk.Button(frame_buttons, text="Design Graph", command=design_graph)
-btn8.grid(row=2, column=0, padx=5)
+btn5 = tk.Button(currentGraph, text="Add Node", command=add_node)
+btn5.grid(row=0, column=0, padx=1, pady=1)
 
-btn9 = tk.Button(frame_buttons, text="Save Graph to File", command=save_graph_to_file)
-btn9.grid(row=2, column=1, padx=5)
+btn6 = tk.Button(currentGraph, text="Add Segment", command=add_segment)
+btn6.grid(row=0, column=1, padx=1, pady=1)
 
-btn10 = tk.Button(frame_buttons, text="Show current Graph", command = load_current_graph)
-btn10.grid(row=2, column=2, padx=10)
+btn7 = tk.Button(currentGraph, text="Delete Node", command=delete_node)
+btn7.grid(row=1, column=0, padx=1, pady=1)
 
-frame_nodes = tk.Frame(root)
-frame_nodes.pack(pady=10)
+btn8 = tk.Button(currentGraph, text="Show current Graph", command=load_current_graph)
+btn8.grid(row=0, column=2, padx=1, pady=1)
 
-label = tk.Label(frame_nodes, text="Select a node to show neighbors:")
-label.pack()
+frame_nodes = tk.Frame(currentGraph)
+frame_nodes.grid(row=1, column=2, columnspan=1, padx=1, pady=1, sticky=tk.N + tk.E + tk.W + tk.S)
 
-listbox_nodes = tk.Listbox(frame_nodes, height=10, width=30)
+listbox_nodes = tk.Listbox(frame_nodes, height=5, width=15)
 listbox_nodes.pack()
 
-btn4 = tk.Button(root, text="Show Neighbors", command=show_neighbors)
-btn4.pack(pady=10)
+btn9 = tk.Button(currentGraph, text="Show Neighbors", command=show_neighbors)
+btn9.grid(row=1, column=1, padx=1, pady=1)
+
+# Rute
+ruteSetup = tk.LabelFrame(root, text = "Rute Setup")
+ruteSetup.grid(row=2, column=0,padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
+ruteSetup.rowconfigure(index=0, weight=1)
+ruteSetup.columnconfigure(index=0, weight=1)
+ruteSetup.columnconfigure(index=1, weight=1)
+
+btn10 = tk.Button(ruteSetup, text="Find Shortest Path", command=find_shotest_path)
+btn10.grid(row=0, column=0, padx=1, pady=1)
+
+btn11 = tk.Button(ruteSetup, text="Show Reachable Nodes", command=show_reachable_nodes)
+btn11.grid(row=0, column=1, padx=1, pady=1)
+
+# Graph Frame
+
+graphFrame = tk.LabelFrame(root, text = "Graph")
+ruteSetup.grid(row=0, column=1,padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
 
 root.mainloop()

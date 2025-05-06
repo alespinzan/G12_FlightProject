@@ -43,7 +43,16 @@ def CosttoNode(pth, Node): # Returns the total cost from the origin of the Path 
     else:
         return -1  
     
-def ExplorePaths(startNode):
+def ExplorePaths(g, startName):
+    
+    startNode = None
+
+    for node in g.lnodes:
+        if node.name == startName:
+            startNode = node
+            break
+        else:
+            startNode = False
     
     paths = []  # Lista para almacenar los caminos posibles
     stack = []  # Pila para manejar los nodos y caminos pendientes de explorar

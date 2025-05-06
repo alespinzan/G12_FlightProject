@@ -5,13 +5,12 @@ from test_graph import *
 
 
 
-startNode = G.lnodes[8]  # Cambia el índice según el nodo inicial deseado
 
-possible_paths = ExplorePaths(startNode)
+possible_paths = ExplorePaths(G, "A")
 # Graficar todos los caminos en un solo grafo
 PlotPaths(G, possible_paths)
 
-shortest_path = findShortestPath(G, startNode, G.lnodes[5])
+shortest_path = findShortestPath(G, "A","B")
 
 print(shortest_path.name, "Cost:", shortest_path.cost)
 

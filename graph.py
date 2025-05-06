@@ -149,7 +149,7 @@ def readfile(filename):
                 
     return gr
 
-def delete_node(g, node_name):
+def deleteNode(g, node_name):
     # Encontrar el nodo a eliminar
     node_to_delete = None
     for node in g.lnodes:
@@ -176,7 +176,24 @@ def delete_node(g, node_name):
 
     return True  # Nodo eliminado con éxito
 
-def findShortestPath(g, origin, destination):
+def findShortestPath(g, nameOrigin, nameDestination):
+    
+    foundOr = False
+    foundDest = False
+    i = 0
+    while i < len(g.lnodes) and not foundOr:
+        if g.lnodes[i].name == nameOrigin:
+            foundOr = True
+        else:
+            i += 1
+    origin = g.lnodes[i]
+    d = 0
+    while d < len(g.lnodes) and not foundDest:
+        if g.lnodes[d].name == nameDestination:
+            foundDest = True
+        else:
+            d += 1
+    destination = g.lnodes[d]
    
     evpaths = []  # Lista de caminos
     initial_path = Path()  # Crear un camino inicial
@@ -213,5 +230,3 @@ def findShortestPath(g, origin, destination):
 
     # Si la lista de caminos está vacía, no es posible llegar al destino
     return None
-
-
