@@ -1,62 +1,71 @@
+import os
 import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog
+from tkinter import messagebox, simpledialog
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 from graph import *
 from node import *
 from test_graph import G
-import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
+from airspace import *
 
-# Global graph object
+# Rutas por defecto (ajusta si tienen extensión .txt u otra)
+BASE_DIR = os.path.dirname(__file__)
+NAV_FILE = os.path.join(BASE_DIR, "Cat_nav")
+SEG_FILE = os.path.join(BASE_DIR, "Cat_seg")
+AER_FILE = os.path.join(BASE_DIR, "Cat_aer")
+
+# Globales para canvas y grafo actual
 current_graph = None
-graph_canvas = None
+graph_canvas  = None
 
 def draw_graph(g, pth=None, pths=None):
     global graph_canvas
-    # Limpiar el frame
-    for widget in graphFrame.winfo_children():
-        widget.destroy()
+    # Limpia lo anterior
+    for w in graphFrame.winfo_children():
+        w.destroy()
 
-    fig, ax = plt.subplots(figsize=(5, 5))
+    fig = Figure(figsize=(5,5))
+    ax  = fig.add_subplot(111)
     if pth is not None:
         PlotPath(g, pth, ax)
     elif pths is not None:
         PlotPaths(g, pths, ax)
     else:
         DrawBaseGraph(g, ax)
-    ax.set_xlabel('X Coordinate')
-    ax.set_ylabel('Y Coordinate')
-    ax.set_title('Graph Visualization with Arrows')
-    ax.grid(True, linestyle='--', linewidth=0.5, color='red')
+
+    ax.set_xlabel("X Coordinate")
+    ax.set_ylabel("Y Coordinate")
+    ax.set_title("Graph Visualization with Arrows")
+    ax.grid(True, linestyle="--", linewidth=0.5, color="red")
 
     graph_canvas = FigureCanvasTkAgg(fig, master=graphFrame)
     graph_canvas.draw()
     graph_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
-    plt.close(fig)
-
+    fig.clear()
 
 def load_example_graph():
     global current_graph
-    current_graph = G 
+    current_graph = G
     draw_graph(G)
     update_node_list()
 
 def load_graph_from_file():
     global current_graph
-    filepath = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
-    if filepath:
-        current_graph = readfile(filepath)
-        draw_graph(current_graph)
-        update_node_list()
+    filepath = tk.filedialog.askopenfilename(filetypes=[("Text Files","*.txt")])
+    if not filepath:
+        return
+    current_graph = readfile(filepath)
+    draw_graph(current_graph)
+    update_node_list()
 
 def show_neighbors():
     global current_graph
-    selected = listbox_nodes.curselection()
-    if not current_graph or not selected:
-        messagebox.showinfo("Select a node", "Please select a node to display its neighbors.")
+    sel = listbox_nodes.curselection()
+    if not current_graph or not sel:
+        messagebox.showinfo("Select a node", "Selecciona un nodo primero.")
         return
-    name = listbox_nodes.get(selected[0])
+    name = listbox_nodes.get(sel[0])
     PlotNode(current_graph, name)
 
 def update_node_list():
@@ -69,176 +78,173 @@ def update_node_list():
 def add_node():
     global current_graph
     if not current_graph:
-        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.")
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    name = simpledialog.askstring("Add Node", "Enter node name:")
-    x = simpledialog.askfloat("Add Node", "Enter x-coordinate:")
-    y = simpledialog.askfloat("Add Node", "Enter y-coordinate:")
+    name = simpledialog.askstring("Add Node","Nombre nodo:")
+    x = simpledialog.askfloat("Add Node","Coordenada X:")
+    y = simpledialog.askfloat("Add Node","Coordenada Y:")
     if name and x is not None and y is not None:
-        AddNode(current_graph, node(name, x, y))
+        AddNode(current_graph, node(name,x,y))
         draw_graph(current_graph)
         update_node_list()
 
 def add_segment():
     global current_graph
     if not current_graph:
-        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.") 
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    origin = simpledialog.askstring("Add Segment", "Enter origin node name:")
-    destination = simpledialog.askstring("Add Segment", "Enter destination node name:")
-    if origin and destination:
-        segment_name = f"{origin}-{destination}"
-        AddSegment(current_graph, segment_name, origin, destination)
+    o = simpledialog.askstring("Add Segment","Nodo origen:")
+    d = simpledialog.askstring("Add Segment","Nodo destino:")
+    if o and d:
+        name = f"{o}-{d}"
+        AddSegment(current_graph,name,o,d)
         draw_graph(current_graph)
 
 def delete_node():
     global current_graph
     if not current_graph:
-        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.")
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    name = simpledialog.askstring("Delete Node", "Enter node name to delete:")
-    if name:
-        if deleteNode(current_graph, name):  
-            update_node_list()
-        else:
-            messagebox.showinfo("Error", f"Node '{name}' not found.")
+    name = simpledialog.askstring("Delete Node","Nodo a borrar:")
+    if name and deleteNode(current_graph,name):
+        update_node_list()
+    else:
+        messagebox.showinfo("Error", f"'{name}' no existe.")
 
 def design_graph():
     global current_graph
     current_graph = Graph()
-    update_node_list()
     draw_graph(current_graph)
+    update_node_list()
 
 def save_graph_to_file():
     global current_graph
     if not current_graph:
-        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.")
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    filepath = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files", "*.txt")])
-    if filepath:
-        save_graph_to_file(current_graph, filepath)
-        messagebox.showinfo("Success", f"Graph saved to {filepath}")
-
-def load_current_graph():
-    global current_graph
-    return draw_graph(current_graph)
+    fp = tk.filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files","*.txt")])
+    if fp:
+        save_graph_to_file(current_graph, fp)
+        messagebox.showinfo("Guardado", f"Grafo guardado en {fp}")
 
 def find_shotest_path():
     global current_graph
     if not current_graph:
-        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.")
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    start_node = simpledialog.askstring("Shortest Path", "Enter start node name:")
-    end_node = simpledialog.askstring("Shortest Path", "Enter end node name:")
-    
-    if start_node and end_node:
-        path = findShortestPath(current_graph, start_node, end_node)
+    start = simpledialog.askstring("Shortest Path","Nodo inicio:")
+    end   = simpledialog.askstring("Shortest Path","Nodo fin:")
+    if start and end:
+        path = findShortestPath(current_graph,start,end)
         if path:
-            draw_graph(current_graph, path)
+            draw_graph(current_graph, pth=path)
         else:
-            messagebox.showinfo("Error", f"No path found from '{start_node}' to '{end_node}'.")
+            messagebox.showinfo("Error", "No hay ruta.")
 
 def show_reachable_nodes():
     global current_graph
     if not current_graph:
-        messagebox.showinfo("Error", "No graph loaded. Please load or create a graph first.")
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    start_node = simpledialog.askstring("Reachable Nodes", "Enter start node name:")
-    if start_node:
-        reachable_nodes = ExplorePaths(current_graph, start_node)
-        if reachable_nodes:
-            draw_graph(current_graph, None, reachable_nodes)
+    start = simpledialog.askstring("Reachable","Nodo inicio:")
+    if start:
+        r = ExplorePaths(current_graph, start)
+        if r:
+            draw_graph(current_graph, pths=r)
         else:
-            messagebox.showinfo("Error, node not in graph")
+            messagebox.showinfo("Error","Nodo no válido.")
 
-# --- GUI SETUP ---
+# -------------------------------------------------------------------
+# Handler global para visualizar el espacio aéreo de Cataluña
+# -------------------------------------------------------------------
+def visualizar_cataluna():
+    global current_graph
 
+    # 1) Carga los datos de Cataluña
+    aspace = AirSpace()
+    aspace.load_navpoints(NAV_FILE)
+    aspace.load_navsegments(SEG_FILE)
+    aspace.load_airports(AER_FILE)
+
+    # 2) Construye manualmente un Graph válido
+    g = Graph()
+    # Añade cada NavPoint como nodo
+    for np_obj in aspace.navpoints.values():
+        # convierte NavPoint → node para Graph
+        AddNode(g, node(np_obj.id, np_obj.latitude, np_obj.longitude))
+    # Añade cada NavSegment como arista
+    for seg in aspace.navsegments:
+        seg_name = f"{seg.origin.id}-{seg.destination.id}"
+        AddSegment(g, seg_name, seg.origin.id, seg.destination.id)
+
+    # 3) Actualiza la variable global
+    current_graph = g
+
+    # 4) Limpia el frame y dibuja el grafo cargado
+    for widget in graphFrame.winfo_children():
+        widget.destroy()
+    draw_graph(current_graph)
+
+    # 5) Refresca la lista de nodos para los handlers de vecinos/A*/alcance
+    update_node_list()
+
+
+# -------------------------------------------------------------------
+# Construcción de la interfaz
+# -------------------------------------------------------------------
 root = tk.Tk()
 root.geometry("1000x500")
 root.title("Airways Visualizer")
 
-# Root layout
-root.columnconfigure(index=0, weight=1)
-root.columnconfigure(index=1, weight=10)
-root.rowconfigure(index=0, weight=1)
+# Divide en dos columnas: botones | gráfico
+root.columnconfigure(0, weight=1)
+root.columnconfigure(1, weight=4)
+root.rowconfigure(0, weight=1)
 
-
-# Graph Frame
-graphFrame = tk.LabelFrame(root, text = "Graph")
-graphFrame.grid(row=0, column=1,padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-graphFrame
-
-# buttons frame
+# Frame de botones a la izquierda
 buttons = tk.Frame(root)
-buttons.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-buttons.columnconfigure(index=0, weight=1)
-buttons.rowconfigure(index=0, weight=1)
-buttons.rowconfigure(index=1, weight=1)
-buttons.rowconfigure(index=2, weight=1)
+buttons.grid(row=0, column=0, sticky="nswe", padx=5, pady=5)
 
-# LoadGraphFrame set up:
-loadGraphFrame = tk.LabelFrame(buttons, text = "Load Graphs")
-loadGraphFrame.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-loadGraphFrame.rowconfigure(index=0, weight=1)
-loadGraphFrame.rowconfigure(index=1, weight=1)
-loadGraphFrame.columnconfigure(index=0, weight=1)
-loadGraphFrame.columnconfigure(index=1, weight=1)
+# Frame de gráfica a la derecha
+graphFrame = tk.LabelFrame(root, text="Graph")
+graphFrame.grid(row=0, column=1, sticky="nswe", padx=5, pady=5)
 
+# --- Load Graphs ---
+loadGraphFrame = tk.LabelFrame(buttons, text="Load Graphs")
+loadGraphFrame.grid(row=0, column=0, sticky="we", pady=3)
 btn1 = tk.Button(loadGraphFrame, text="Show Example Graph", command=load_example_graph)
-btn1.grid(row=0, column=0, padx=1, pady=1)
-
 btn2 = tk.Button(loadGraphFrame, text="Load Graph from File", command=load_graph_from_file)
-btn2.grid(row=0, column=1, padx=1, pady=1)
-
 btn3 = tk.Button(loadGraphFrame, text="Design Graph", command=design_graph)
-btn3.grid(row=1, column=0, padx=1, pady=1)
-
 btn4 = tk.Button(loadGraphFrame, text="Save Graph to File", command=save_graph_to_file)
-btn4.grid(row=1, column=1, padx=1, pady=1)
+btn1.grid(row=0,column=0,padx=2,pady=2); btn2.grid(row=0,column=1,padx=2,pady=2)
+btn3.grid(row=1,column=0,padx=2,pady=2); btn4.grid(row=1,column=1,padx=2,pady=2)
 
-# current graph SetUP
-currentGraph = tk.LabelFrame(buttons, text = "Current Graph")
-currentGraph.grid(row=1, column=0,padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-currentGraph.rowconfigure(index=0, weight=1)
-currentGraph.rowconfigure(index=1, weight=1)
-currentGraph.columnconfigure(index=0, weight=1)
-currentGraph.columnconfigure(index=1, weight=1)
-currentGraph.columnconfigure(index=2, weight=4)
-
+# --- Current Graph ---
+currentGraph = tk.LabelFrame(buttons, text="Current Graph")
+currentGraph.grid(row=1, column=0, sticky="we", pady=3)
 btn5 = tk.Button(currentGraph, text="Add Node", command=add_node)
-btn5.grid(row=0, column=0, padx=1, pady=1)
-
 btn6 = tk.Button(currentGraph, text="Add Segment", command=add_segment)
-btn6.grid(row=0, column=1, padx=1, pady=1)
-
 btn7 = tk.Button(currentGraph, text="Delete Node", command=delete_node)
-btn7.grid(row=1, column=0, padx=1, pady=1)
-
-btn8 = tk.Button(currentGraph, text="Show current Graph", command=load_current_graph)
-btn8.grid(row=0, column=2, padx=1, pady=1)
-
-frame_nodes = tk.Frame(currentGraph)
-frame_nodes.grid(row=1, column=2, columnspan=1, padx=1, pady=1, sticky=tk.N + tk.E + tk.W + tk.S)
-
-listbox_nodes = tk.Listbox(frame_nodes, height=5, width=15)
-listbox_nodes.pack()
-
+btn8 = tk.Button(currentGraph, text="Show current Graph", command=lambda: draw_graph(current_graph))
 btn9 = tk.Button(currentGraph, text="Show Neighbors", command=show_neighbors)
-btn9.grid(row=1, column=1, padx=1, pady=1)
+frame_nodes = tk.Frame(currentGraph)
+listbox_nodes = tk.Listbox(frame_nodes, height=5, width=15)
+frame_nodes.grid(row=1,column=2); listbox_nodes.pack()
+btn5.grid(row=0,column=0,padx=2,pady=2); btn6.grid(row=0,column=1,padx=2,pady=2)
+btn7.grid(row=1,column=0,padx=2,pady=2); btn8.grid(row=0,column=2,padx=2,pady=2)
+btn9.grid(row=1,column=1,padx=2,pady=2)
 
-# Rute
-ruteSetup = tk.LabelFrame(buttons, text = "Rute Setup")
-ruteSetup.grid(row=2, column=0,padx=5, pady=5, sticky=tk.N + tk.E + tk.W + tk.S)
-ruteSetup.rowconfigure(index=0, weight=1)
-ruteSetup.columnconfigure(index=0, weight=1)
-ruteSetup.columnconfigure(index=1, weight=1)
+# --- Rute Setup ---
+ruteSetup = tk.LabelFrame(buttons, text="Rute Setup")
+ruteSetup.grid(row=2, column=0, sticky="we", pady=3)
+btn10 = tk.Button(ruteSetup, text="Find Shortest Path",    command=find_shotest_path)
+btn11 = tk.Button(ruteSetup, text="Show Reachable Nodes",  command=show_reachable_nodes)
+btn10.grid(row=0,column=0,padx=2,pady=2); btn11.grid(row=0,column=1,padx=2,pady=2)
 
-btn10 = tk.Button(ruteSetup, text="Find Shortest Path", command=find_shotest_path)
-btn10.grid(row=0, column=0, padx=1, pady=1)
-
-btn11 = tk.Button(ruteSetup, text="Show Reachable Nodes", command=show_reachable_nodes)
-btn11.grid(row=0, column=1, padx=1, pady=1)
-
-
+# --- Espacio Aéreo Cataluña ---
+catalunaFrame = tk.LabelFrame(buttons, text="Espacio Aéreo Cataluña")
+catalunaFrame.grid(row=3, column=0, sticky="we", pady=3)
+btn_vis_cat = tk.Button(catalunaFrame, text="Visualizar Cataluña", command=visualizar_cataluna)
+btn_vis_cat.pack(padx=2, pady=2)
 
 root.mainloop()
