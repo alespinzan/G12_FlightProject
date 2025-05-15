@@ -51,12 +51,7 @@ def GetClosest(g, x, y):
     closestNode = g.lnodes[distances.index(minDistance)]
     return closestNode
 
-
-
-def Plot(g):
-    fig, ax = plt.subplots()  
-
-    def DrawBaseGraph(g, ax):
+def DrawBaseGraph(g, ax):
         for node in g.lnodes:
             ax.plot(node.Ox, node.Oy, 'ko')  # Dibujar el nodo como un punto
             ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)  # Etiqueta del nodo
@@ -69,7 +64,7 @@ def Plot(g):
             # Dibujar una flecha para el segmento
             ax.annotate(
                 '',  # Sin texto
-                xy=(x_end, y_end),  # Coordenadas del destino
+                xy=(x_end, y_end), # Coordenadas del destino
                 xytext=(x_start, y_start),  # Coordenadas del origen
                 arrowprops=dict(arrowstyle='->', color='blue', lw=1.5)  # Estilo de la flecha
             )
@@ -78,6 +73,9 @@ def Plot(g):
             mid_x = (x_start + x_end) / 2
             mid_y = (y_start + y_end) / 2
             ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='black', ha='center')
+
+def Plot(g):
+    fig, ax = plt.subplots()  
 
     # Call DrawBaseGraph to utilize it
     DrawBaseGraph(g, ax)

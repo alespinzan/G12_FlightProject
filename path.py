@@ -2,6 +2,7 @@ from node import *
 import matplotlib.pyplot as plt
 
 
+
 class Path:
     def __init__(self):
         self.name = ""
@@ -86,18 +87,9 @@ def ExplorePaths(g, startName):
 
     return paths
 
-def PlotPath(Graph, pth):
-    fig, ax = plt.subplots()
-
-    # Dibujar los nodos del grafo
-    for node in Graph.lnodes:
-        ax.plot(node.Ox, node.Oy, 'ko')  # Dibujar el nodo como un punto
-        ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)  # Etiqueta del nodo
-
-    # Dibujar los segmentos del grafo
-    for segment in Graph.lsegments:
-        ax.plot([segment.origin.Ox, segment.destination.Ox], 
-                [segment.origin.Oy, segment.destination.Oy], 'b-', zorder=2)  # Líneas azules para los segmentos
+def PlotPath(Graph, pth, ax):
+    from graph import DrawBaseGraph
+    DrawBaseGraph(Graph, ax)
 
     # Dibujar el camino con flechas (encima de los segmentos)
     for i in range(len(pth.nodes) - 1):
@@ -114,26 +106,11 @@ def PlotPath(Graph, pth):
             arrowprops=dict(arrowstyle='->', color='red', lw=1.5)  # Estilo de la flecha
         )
 
-    # Activar la cuadrícula
-    ax.grid(True, which='both', color='gray', linestyle='--', linewidth=0.5, zorder = 1)
+def PlotPaths(Graph, paths, ax):
 
-    plt.show()
+    from graph import DrawBaseGraph
 
-def PlotPaths(Graph, paths):
-   
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots()
-
-    # Dibujar los nodos del grafo
-    for node in Graph.lnodes:
-        ax.plot(node.Ox, node.Oy, 'ko')  # Dibujar el nodo como un punto
-        ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)  # Etiqueta del nodo
-
-    # Dibujar los segmentos del grafo
-    for segment in Graph.lsegments:
-        ax.plot([segment.origin.Ox, segment.destination.Ox], 
-                [segment.origin.Oy, segment.destination.Oy], 'b-', zorder=2)  # Líneas azules para los segmentos
+    DrawBaseGraph(Graph, ax)
 
     # Dibujar todos los caminos con colores diferentes
     colors = ['r', 'g', 'c', 'm', 'y']  # Colores para los caminos
@@ -150,8 +127,3 @@ def PlotPaths(Graph, paths):
             xytext=(dx_start, dy_start),  # Coordenadas del origen
             arrowprops=dict(arrowstyle='->', color='red', lw=1.5)  # Estilo de la flecha
         )
-
-    # Activar la cuadrícula
-    ax.grid(True, which='both', color='gray', linestyle='--', linewidth=0.5, zorder=1)
-
-    plt.show()
