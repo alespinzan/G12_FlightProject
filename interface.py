@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox, simpledialog, filedialog
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -42,7 +42,6 @@ def draw_graph(g, pth=None, pths=None):
     graph_canvas = FigureCanvasTkAgg(fig, master=graphFrame)
     graph_canvas.draw()
     graph_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=1)
-    fig.clear()
 
 def load_example_graph():
     global current_graph
@@ -52,7 +51,7 @@ def load_example_graph():
 
 def load_graph_from_file():
     global current_graph
-    filepath = tk.filedialog.askopenfilename(filetypes=[("Text Files","*.txt")])
+    filepath = filedialog.askopenfilename(filetypes=[("Text Files","*.txt")])
     if not filepath:
         return
     current_graph = readfile(filepath)
@@ -117,12 +116,12 @@ def design_graph():
     draw_graph(current_graph)
     update_node_list()
 
-def save_graph_to_file():
+def save_graph_to_file_handler():
     global current_graph
     if not current_graph:
         messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    fp = tk.filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files","*.txt")])
+    fp = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files","*.txt")])
     if fp:
         save_graph_to_file(current_graph, fp)
         messagebox.showinfo("Guardado", f"Grafo guardado en {fp}")
@@ -171,11 +170,11 @@ def visualizar_cataluna():
     # Añade cada NavPoint como nodo
     for np_obj in aspace.navpoints.values():
         # convierte NavPoint → node para Graph
-        AddNode(g, node(np_obj.id, np_obj.latitude, np_obj.longitude))
+        AddNode(g, node(np_obj.name, np_obj.latitude, np_obj.longitude))
     # Añade cada NavSegment como arista
     for seg in aspace.navsegments:
-        seg_name = f"{seg.origin.id}-{seg.destination.id}"
-        AddSegment(g, seg_name, seg.origin.id, seg.destination.id)
+        seg_name = f"{seg.origin.name}-{seg.destination.name}"
+        AddSegment(g, seg_name, seg.origin.name, seg.destination.name)
 
     # 3) Actualiza la variable global
     current_graph = g
@@ -215,7 +214,7 @@ loadGraphFrame.grid(row=0, column=0, sticky="we", pady=3)
 btn1 = tk.Button(loadGraphFrame, text="Show Example Graph", command=load_example_graph)
 btn2 = tk.Button(loadGraphFrame, text="Load Graph from File", command=load_graph_from_file)
 btn3 = tk.Button(loadGraphFrame, text="Design Graph", command=design_graph)
-btn4 = tk.Button(loadGraphFrame, text="Save Graph to File", command=save_graph_to_file)
+btn4 = tk.Button(loadGraphFrame, text="Save Graph to File", command=save_graph_to_file_handler)
 btn1.grid(row=0,column=0,padx=2,pady=2); btn2.grid(row=0,column=1,padx=2,pady=2)
 btn3.grid(row=1,column=0,padx=2,pady=2); btn4.grid(row=1,column=1,padx=2,pady=2)
 
