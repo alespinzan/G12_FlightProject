@@ -37,7 +37,7 @@ def draw_graph(g, pth=None, pths=None):
     ax.set_xlabel("X Coordinate")
     ax.set_ylabel("Y Coordinate")
     ax.set_title("Graph Visualization with Arrows")
-    ax.grid(True, linestyle="--", linewidth=0.5, color="red")
+    
 
     graph_canvas = FigureCanvasTkAgg(fig, master=graphFrame)
     graph_canvas.draw()
@@ -123,7 +123,7 @@ def save_graph_to_file_handler():
         return
     fp = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files","*.txt")])
     if fp:
-        save_graph_to_file(current_graph, fp)
+        save_graph_to_file_handler(current_graph, fp)
         messagebox.showinfo("Guardado", f"Grafo guardado en {fp}")
 
 def find_shotest_path():
@@ -197,12 +197,17 @@ root.title("Airways Visualizer")
 
 # Divide en dos columnas: botones | gráfico
 root.columnconfigure(0, weight=1)
-root.columnconfigure(1, weight=4)
+root.columnconfigure(1, weight=7)
 root.rowconfigure(0, weight=1)
 
 # Frame de botones a la izquierda
 buttons = tk.Frame(root)
-buttons.grid(row=0, column=0, sticky="nswe", padx=5, pady=5)
+buttons.grid(row=0, column=0, sticky="nswe", padx=3, pady=3)
+buttons.columnconfigure(0, weight=1)
+buttons.rowconfigure(0, weight=1)
+buttons.rowconfigure(1, weight=1)
+buttons.rowconfigure(2, weight=1)
+buttons.rowconfigure(3, weight=1)
 
 # Frame de gráfica a la derecha
 graphFrame = tk.LabelFrame(root, text="Graph")
@@ -210,7 +215,7 @@ graphFrame.grid(row=0, column=1, sticky="nswe", padx=5, pady=5)
 
 # --- Load Graphs ---
 loadGraphFrame = tk.LabelFrame(buttons, text="Load Graphs")
-loadGraphFrame.grid(row=0, column=0, sticky="we", pady=3)
+loadGraphFrame.grid(row=0, column=0, sticky="nswe", pady=3)
 btn1 = tk.Button(loadGraphFrame, text="Show Example Graph", command=load_example_graph)
 btn2 = tk.Button(loadGraphFrame, text="Load Graph from File", command=load_graph_from_file)
 btn3 = tk.Button(loadGraphFrame, text="Design Graph", command=design_graph)
@@ -220,7 +225,7 @@ btn3.grid(row=1,column=0,padx=2,pady=2); btn4.grid(row=1,column=1,padx=2,pady=2)
 
 # --- Current Graph ---
 currentGraph = tk.LabelFrame(buttons, text="Current Graph")
-currentGraph.grid(row=1, column=0, sticky="we", pady=3)
+currentGraph.grid(row=1, column=0, sticky="nswe", pady=3)
 btn5 = tk.Button(currentGraph, text="Add Node", command=add_node)
 btn6 = tk.Button(currentGraph, text="Add Segment", command=add_segment)
 btn7 = tk.Button(currentGraph, text="Delete Node", command=delete_node)
@@ -235,14 +240,14 @@ btn9.grid(row=1,column=1,padx=2,pady=2)
 
 # --- Rute Setup ---
 ruteSetup = tk.LabelFrame(buttons, text="Rute Setup")
-ruteSetup.grid(row=2, column=0, sticky="we", pady=3)
+ruteSetup.grid(row=2, column=0, sticky="nswe", pady=3)
 btn10 = tk.Button(ruteSetup, text="Find Shortest Path",    command=find_shotest_path)
 btn11 = tk.Button(ruteSetup, text="Show Reachable Nodes",  command=show_reachable_nodes)
 btn10.grid(row=0,column=0,padx=2,pady=2); btn11.grid(row=0,column=1,padx=2,pady=2)
 
 # --- Espacio Aéreo Cataluña ---
 catalunaFrame = tk.LabelFrame(buttons, text="Espacio Aéreo Cataluña")
-catalunaFrame.grid(row=3, column=0, sticky="we", pady=3)
+catalunaFrame.grid(row=3, column=0, sticky="nswe", pady=3)
 btn_vis_cat = tk.Button(catalunaFrame, text="Visualizar Cataluña", command=visualizar_cataluna)
 btn_vis_cat.pack(padx=2, pady=2)
 

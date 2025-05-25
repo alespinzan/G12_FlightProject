@@ -53,8 +53,8 @@ def GetClosest(g, x, y):
 
 def DrawBaseGraph(g, ax):
         for node in g.lnodes:
-            ax.plot(node.Ox, node.Oy, 'ko')  # Dibujar el nodo como un punto
-            ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=12)  # Etiqueta del nodo
+            ax.plot(node.Ox, node.Oy, 'ko', markersize=3)  # Cambia el tamaño con markersize
+            ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=7)
 
         # Dibujar los segmentos como flechas
         for segment in g.lsegments:
@@ -66,7 +66,7 @@ def DrawBaseGraph(g, ax):
                 '',  # Sin texto
                 xy=(x_end, y_end), # Coordenadas del destino
                 xytext=(x_start, y_start),  # Coordenadas del origen
-                arrowprops=dict(arrowstyle='->', color='blue', lw=1.5)  # Estilo de la flecha
+                arrowprops=dict(arrowstyle='->', color='blue', lw=1)  # Estilo de la flecha
             )
 
             # Etiqueta del costo en el medio del segmento
@@ -84,7 +84,7 @@ def Plot(g):
     ax.set_xlabel('X Coordinate')
     ax.set_ylabel('Y Coordinate')
     ax.set_title('Graph Visualization with Arrows')
-    ax.grid(True, linestyle='--', linewidth=0.5, color='red')
+    ax.grid(False, linestyle='--', linewidth=0.5, color='red')
     plt.show()
     
 def PlotNode(g,nameOrigin):
