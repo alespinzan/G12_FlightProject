@@ -8,6 +8,19 @@ class Graph:
         self.lnodes = []
         self.lsegments = []
 
+    def GetNeighbors(self, node_name: str) -> list[str]:
+        # find the node object
+        node_obj = next((n for n in self.lnodes if n.name == node_name), None)
+        if not node_obj:
+            return []
+        # return the names of its neighbors
+        return [nbr.name for nbr in node_obj.nl]
+
+    def findShortestPath(self, origin_name, dest_name):
+        # delega en la función libre
+        from graph import findShortestPath as _fsp
+        return _fsp(self, origin_name, dest_name)
+
 def AddNode(g, n):
     if n in g.lnodes:
         return False

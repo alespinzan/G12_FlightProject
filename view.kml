@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="1">
+        <Style id="4">
+            <LineStyle id="5">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="8">
+            <LineStyle id="9">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="12">
+            <LineStyle id="13">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="16">
+            <LineStyle id="17">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="20">
+            <LineStyle id="21">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="24">
+            <LineStyle id="25">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="28">
+            <LineStyle id="29">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="32">
+            <LineStyle id="33">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="36">
+            <LineStyle id="37">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="40">
+            <LineStyle id="41">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="44">
+            <LineStyle id="45">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="48">
+            <LineStyle id="49">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="52">
+            <LineStyle id="53">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="56">
+            <LineStyle id="57">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="60">
+            <LineStyle id="61">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="64">
+            <LineStyle id="65">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="68">
+            <LineStyle id="69">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="72">
+            <LineStyle id="73">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="76">
+            <LineStyle id="77">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="80">
+            <LineStyle id="81">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Style id="84">
+            <LineStyle id="85">
+                <color>ff0000ff</color>
+                <colorMode>normal</colorMode>
+                <width>3</width>
+            </LineStyle>
+        </Style>
+        <Placemark id="3">
+            <name>BLN → YES</name>
+            <styleUrl>#4</styleUrl>
+            <LineString id="2">
+                <coordinates>-3.625,38.1525,0.0 -2.3525,38.3608333333,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="7">
+            <name>YES → XEBAR</name>
+            <styleUrl>#8</styleUrl>
+            <LineString id="6">
+                <coordinates>-2.3525,38.3608333333,0.0 -2.0927777778,38.5211111111,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="11">
+            <name>XEBAR → POBOS</name>
+            <styleUrl>#12</styleUrl>
+            <LineString id="10">
+                <coordinates>-2.0927777778,38.5211111111,0.0 -1.7688888889,38.7191666667,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="15">
+            <name>POBOS → ASTRO</name>
+            <styleUrl>#16</styleUrl>
+            <LineString id="14">
+                <coordinates>-1.7688888889,38.7191666667,0.0 -1.2630555556,39.0244444444,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="19">
+            <name>ASTRO → VLC</name>
+            <styleUrl>#20</styleUrl>
+            <LineString id="18">
+                <coordinates>-1.2630555556,39.0244444444,0.0 -0.4830555556,39.4855555556,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="23">
+            <name>VLC → SGO</name>
+            <styleUrl>#24</styleUrl>
+            <LineString id="22">
+                <coordinates>-0.4830555556,39.4855555556,0.0 -0.2077777778,39.6741666667,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="27">
+            <name>SGO → SOPET</name>
+            <styleUrl>#28</styleUrl>
+            <LineString id="26">
+                <coordinates>-0.2077777778,39.6741666667,0.0 -0.0047222222,39.8338888889,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="31">
+            <name>SOPET → CASIM</name>
+            <styleUrl>#32</styleUrl>
+            <LineString id="30">
+                <coordinates>-0.0047222222,39.8338888889,0.0 0.1430555556,40.2308333333,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="35">
+            <name>CASIM → ARLE0</name>
+            <styleUrl>#36</styleUrl>
+            <LineString id="34">
+                <coordinates>0.1430555556,40.2308333333,0.0 0.2699069167,40.55538575,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="39">
+            <name>ARLE0 → DORMI</name>
+            <styleUrl>#40</styleUrl>
+            <LineString id="38">
+                <coordinates>0.2699069167,40.55538575,0.0 0.385,40.8711111111,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="43">
+            <name>DORMI → SALAS</name>
+            <styleUrl>#44</styleUrl>
+            <LineString id="42">
+                <coordinates>0.385,40.8711111111,0.0 0.4763888889,41.1097222222,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="47">
+            <name>SALAS → BALDE</name>
+            <styleUrl>#48</styleUrl>
+            <LineString id="46">
+                <coordinates>0.4763888889,41.1097222222,0.0 0.5227777778,41.23,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="51">
+            <name>BALDE → VILAR</name>
+            <styleUrl>#52</styleUrl>
+            <LineString id="50">
+                <coordinates>0.5227777778,41.23,0.0 0.5658333333,41.3416666667,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="55">
+            <name>VILAR → LRD</name>
+            <styleUrl>#56</styleUrl>
+            <LineString id="54">
+                <coordinates>0.5658333333,41.3416666667,0.0 0.6480555556,41.5527777778,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="59">
+            <name>LRD → REBUL</name>
+            <styleUrl>#60</styleUrl>
+            <LineString id="58">
+                <coordinates>0.6480555556,41.5527777778,0.0 1.1136111111,41.6977777778,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="63">
+            <name>REBUL → LATRO</name>
+            <styleUrl>#64</styleUrl>
+            <LineString id="62">
+                <coordinates>1.1136111111,41.6977777778,0.0 1.6183333333,41.7716666667,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="67">
+            <name>LATRO → MAMUK</name>
+            <styleUrl>#68</styleUrl>
+            <LineString id="66">
+                <coordinates>1.6183333333,41.7716666667,0.0 2.0722222222,41.8366666667,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="71">
+            <name>MAMUK → GIR</name>
+            <styleUrl>#72</styleUrl>
+            <LineString id="70">
+                <coordinates>2.0722222222,41.8366666667,0.0 2.7716666667,41.9313888889,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="75">
+            <name>GIR → BEXUR</name>
+            <styleUrl>#76</styleUrl>
+            <LineString id="74">
+                <coordinates>2.7716666667,41.9313888889,0.0 3.2086111167,41.9477777833,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="79">
+            <name>BEXUR → DIBER</name>
+            <styleUrl>#80</styleUrl>
+            <LineString id="78">
+                <coordinates>3.2086111167,41.9477777833,0.0 4.415,42.0797222222,0.0</coordinates>
+            </LineString>
+        </Placemark>
+        <Placemark id="83">
+            <name>DIBER → SOSUR</name>
+            <styleUrl>#84</styleUrl>
+            <LineString id="82">
+                <coordinates>4.415,42.0797222222,0.0 4.9975,42.5602777778,0.0</coordinates>
+            </LineString>
+        </Placemark>
+    </Document>
+</kml>
