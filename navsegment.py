@@ -14,7 +14,7 @@ class NavSegment:
         line = line.strip()
         # soportar coma o espacio
         parts = line.split(',') if ',' in line else line.split()
-        # Cat_seg real tiene al menos 3 campos: origen, destino, coste
+        # Cat_seg.txt real tiene al menos 3 campos: origen, destino, coste
         if len(parts) < 3:
             raise ValueError(f"Invalid NavSegment line: {line}")
         origin_id = parts[0]
