@@ -67,10 +67,13 @@ def GetClosest(g, x, y):
 def DrawBaseGraph(g, ax):
         for node in g.lnodes:
             ax.plot(node.Ox, node.Oy, 'ko', markersize=3)  # Cambia el tamaño con markersize
-            ax.text(node.Ox + 0.001, node.Oy + 0.001, node.name, fontsize=5)
+            ax.text(node.Ox + 0.001, node.Oy + 0.001, node.name, fontsize=5.5)
 
-        # Dibujar los segmentos como flechas
-        for segment in g.lsegments:
+def drawsegment(g, ax):
+
+    DrawBaseGraph(g, ax)  # Llama a la función para dibujar los nodos
+
+    for segment in g.lsegments:
             x_start, y_start = segment.origin.Ox, segment.origin.Oy
             x_end, y_end = segment.destination.Ox, segment.destination.Oy
 
@@ -86,6 +89,8 @@ def DrawBaseGraph(g, ax):
             mid_x = (x_start + x_end) / 2
             mid_y = (y_start + y_end) / 2
             # ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=5, color='black', ha='center')
+
+
 
 def Plot(g):
     fig, ax = plt.subplots()  

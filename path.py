@@ -44,7 +44,7 @@ def CosttoNode(pth, Node): # Returns the total cost from the origin of the Path 
     else:
         return -1  
     
-def ExplorePaths(g, startName, max_depth=10, max_paths=1000):
+def ExplorePaths(g, startName, max_depth=50, max_paths=1000):
     startNode = None
     for node in g.lnodes:
         if node.name == startName:
