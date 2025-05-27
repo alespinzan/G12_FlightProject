@@ -9,7 +9,7 @@ from airspace import *
 from graph import *
 from node import *
 from path import PlotPath
-from kml_utils import graph_to_kml
+from kml_utils import graph_to_kml, path_to_kml
 
 # --------------------------------------------------
 # Rutas de datos
@@ -288,7 +288,12 @@ def open_google_earth():
         return
     out = os.path.join(BASE_DIR, "view.kml")
     if last_path:
-        path_to_kml(target_graph, last_path, out)
+        # Extrae la lista de nombres de nodos del objeto Path
+        if hasattr(last_path, 'nodes'):
+            node_names = [n.name if hasattr(n, 'name') else n for n in last_path.nodes]
+        else:
+            node_names = list(last_path)
+        path_to_kml(target_graph, node_names, out)
     else:
         graph_to_kml(target_graph, out)
     try:
@@ -353,6 +358,9 @@ tk.Button(queryFrame, text="Shortest Path", command=shortest_path).grid(row=1, c
 tk.Button(ctrl, text="KML Cataluña", command=lambda: export_kml("CAT")).pack(fill=tk.X)
 tk.Button(ctrl, text="KML España",   command=lambda: export_kml("ESP")).pack(fill=tk.X)
 tk.Button(ctrl, text="KML Europa",   command=lambda: export_kml("EUR")).pack(fill=tk.X)
+
+# Botón para abrir en Google Earth
+tk.Button(ctrl, text="Abrir en Google Earth", command=open_google_earth).pack(fill=tk.X)
 
 # Arranca la aplicación
 root.mainloop()
