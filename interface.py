@@ -4,6 +4,7 @@ import sys
 import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
 import subprocess
+from PIL import Image, ImageTk
 
 from airspace import *
 from graph import *
@@ -33,9 +34,14 @@ AER_EU = os.path.join(BASE_DIR, "ECAC_aer.txt")
 
 # Variables globales
 target_graph: Graph = None
+current_graph: Graph = None  # Añadido para evitar NameError
 last_path = None  # para redraw del último shortest path
 show_segments = False  
 selected_nodes = []  # Para almacenar nodos seleccionados en el gráfico
+initial_xlim = None
+initial_ylim = None
+dark_mode = False
+
 
 # --------------------------------------------------
 # Construcción de grafo desde AirSpace
@@ -51,12 +57,13 @@ def build_from_airspace(nav, seg, aer) -> Graph:
     for sg in aspace.navsegments:
         seg_name = f"{sg.origin.name}-{sg.destination.name}"
         AddSegment(g, seg_name, sg.origin.name, sg.destination.name)
+    g._airspace = aspace  # <-- Añade esto
     return g
 
 # --------------------------------------------------
 # Dibujo del grafo en el frame derecho
 # --------------------------------------------------
-def draw_graph(g, pth=None, pths=None):
+def draw_graph(g, pth=None, pths=None, highlight_node=None):
     # Limpia el frame de gráficos anterior
     for w in graph_frame.winfo_children():
         w.destroy()
@@ -79,6 +86,11 @@ def draw_graph(g, pth=None, pths=None):
         PlotPath(g, pth, ax)
     elif pths is not None:
         PlotPaths(g, pths, ax)
+
+    # --- NUEVO: resalta vecinos si se pide ---
+    if highlight_node is not None:
+        from graph import PlotNode
+        PlotNode(g, highlight_node, ax)
 
     ax.set_xlabel("Longitud")
     ax.set_ylabel("Latitud")
@@ -177,9 +189,21 @@ def draw_graph(g, pth=None, pths=None):
     canvas.mpl_connect("button_release_event", on_release)
     canvas.mpl_connect("motion_notify_event", on_motion)
 
-# --------------------------------------------------
-# Refrescar listado de nodos en Listbox
-# --------------------------------------------------
+
+def design_graph():
+    global target_graph, last_path, selected_nodes
+    target_graph = Graph()  # Grafo vacío
+    last_path = None
+    selected_nodes.clear()
+    draw_graph(target_graph)
+
+def load_example_graph():
+    global target_graph, last_path, selected_nodes
+    from test_graph import G  # Asegúrate de tener este archivo y objeto
+    target_graph = G
+    last_path = None
+    selected_nodes.clear()
+    draw_graph(target_graph)
 
 # --------------------------------------------------
 # Carga de catálogos predefinidos
@@ -315,11 +339,16 @@ def del_segment():
     draw_graph(target_graph, last_path)
 
 def show_neighbors():
+    global selected_nodes
     if not target_graph:
         messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    name = simpledialog.askstring("Vecinos de Nodo", "Vecinos de:")
-    PlotNode(target_graph, name)
+    if not selected_nodes:
+        messagebox.showinfo("Selecciona", "Selecciona un nodo en el gráfico para ver sus vecinos.")
+        return
+    name = selected_nodes[0]
+    draw_graph(target_graph, highlight_node=name)
+    selected_nodes.clear()
 
 def show_reachable():
     global selected_nodes
@@ -338,22 +367,58 @@ def show_reachable():
     selected_nodes.clear()
 
 def shortest_path():
-    global target_graph, last_path
+    global target_graph, last_path, cost_label
     if not target_graph:
         messagebox.showinfo("Error", "Carga o crea un grafo primero.")
+        if cost_label:
+            cost_label.config(text="Coste: -")
         return
-    start = simpledialog.askstring("Ruta más corta", "Nodo origen:")
+
+    start = simpledialog.askstring("Ruta más corta", "Nodo o aeropuerto origen:")
     if not start:
+        if cost_label:
+            cost_label.config(text="Coste: -")
         return
-    end = simpledialog.askstring("Ruta más corta", "Nodo destino:")
+    end = simpledialog.askstring("Ruta más corta", "Nodo o aeropuerto destino:")
     if not end:
+        if cost_label:
+            cost_label.config(text="Coste: -")
         return
-    path = findShortestPath(target_graph, start, end)
+
+    # Si el grafo tiene airspace, permite IDs de aeropuerto
+    if hasattr(target_graph, "_airspace"):
+        airspace = target_graph._airspace
+        # Si es aeropuerto, usar SIDs/STARs, si no, usar el ID directamente
+        if start in airspace.airports:
+            start_points = airspace.airports[start].sids or airspace.airports[start].stars
+        else:
+            start_points = [start]
+        if end in airspace.airports:
+            end_points = airspace.airports[end].stars or airspace.airports[end].sids
+        else:
+            end_points = [end]
+        best_path = None
+        best_cost = float('inf')
+        for s in start_points:
+            for e in end_points:
+                path = findShortestPath(target_graph, s, e)
+                if path and hasattr(path, 'cost') and path.cost < best_cost:
+                    best_path = path
+                    best_cost = path.cost
+        path = best_path
+    else:
+        path = findShortestPath(target_graph, start, end)
+
     if path:
         last_path = path
         draw_graph(target_graph, pth=path)
+        if cost_label:
+            cost_label.config(text=f"Coste: {path.cost:.2f}")
     else:
         messagebox.showinfo("Error", "No hay ruta.")
+        if cost_label:
+            cost_label.config(text="Coste: -")
+
 
 def clear_selection():
     global selected_nodes
@@ -387,6 +452,33 @@ def export_kml(scope):
         pass
 
 # --------------------------------------------------
+# Estadísticas del grafo
+# --------------------------------------------------
+def show_stats():
+    if not target_graph or not hasattr(target_graph, "lnodes") or not hasattr(target_graph, "lsegments"):
+        messagebox.showinfo("Estadísticas", "No hay grafo cargado.")
+        return
+    num_nodes = len(target_graph.lnodes)
+    num_segments = len(target_graph.lsegments)
+    if num_nodes == 0:
+        messagebox.showinfo("Estadísticas", "El grafo está vacío.")
+        return
+    # Nodo más conectado
+    max_deg = -1
+    max_node = None
+    for n in target_graph.lnodes:
+        deg = len(getattr(n, "nl", []))
+        if deg > max_deg:
+            max_deg = deg
+            max_node = n.name
+    msg = (
+        f"Número de nodos: {num_nodes}\n"
+        f"Número de segmentos: {num_segments}\n"
+        f"Nodo más conectado: {max_node} ({max_deg} conexiones)\n"
+    )
+    messagebox.showinfo("Estadísticas del grafo", msg)
+
+# --------------------------------------------------
 # Abrir la vista actual en Google Earth
 # --------------------------------------------------
 def open_google_earth():
@@ -414,12 +506,39 @@ def open_google_earth():
     except Exception:
         messagebox.showerror("Error", "No se pudo abrir Google Earth.")
 
-# --------------------------------------------------
-# Construcción de la ventana principal
-# --------------------------------------------------
+# Función para mostrar Funciones extras
+def show_new_features():
+    novedades = (
+        "Novedades recientes:\n"
+        "- Interacción con el raton en el grafo\n"
+        "- Boton de enseñar y ocultar segmentos\n"
+        "- Boton de estadísticas del grafo"
+
+    )
+    messagebox.showinfo("Nuevas funcionalidades", novedades)
+
+def show_group_photo():
+    img_path = os.path.join(BASE_DIR, "foto_grupal.jpg")  
+    if not os.path.exists(img_path):
+        messagebox.showinfo("Foto grupal", "No se ha encontrado la foto grupal en la carpeta del proyecto.")
+        return
+    try:
+        img = Image.open(img_path)
+        img.thumbnail((400, 400))
+        win = tk.Toplevel(root)
+        win.title("Foto grupal")
+        tk_img = ImageTk.PhotoImage(img)
+        label = tk.Label(win, image=tk_img)
+        label.image = tk_img  # Mantener referencia
+        label.pack()
+    except Exception as e:
+        messagebox.showerror("Error", f"No se pudo abrir la imagen:\n{e}")
+
+# ------------ Interfase Setup ----------------
+
 root = tk.Tk()
 root.title("Airspace Explorer v4")
-root.geometry("1200x700")
+root.geometry("1250x700")
 
 # Frames
 ctrl = tk.Frame(root, width=300)
@@ -429,35 +548,38 @@ graph_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
 
 # Botonera (contenedor de botones y paneles de control)
-buttons = tk.LabelFrame(ctrl, text="control")
+buttons = tk.LabelFrame(ctrl, text="Control")
 buttons.pack(fill=tk.BOTH, expand=True)
 
 # --- Carga de grafos ---
-loadGraphFrame = tk.LabelFrame(buttons, text="Carga de grafos")
+loadGraphFrame = tk.LabelFrame(buttons, text="Load graphs")
 loadGraphFrame.grid(row=0, column=0, sticky="nswe", pady=3)
 tk.Button(loadGraphFrame, text="Carga Cataluña", command=load_catalunya).grid(row=0, column=0, padx=2, pady=2)
 tk.Button(loadGraphFrame, text="Carga España", command=load_espana).grid(row=0, column=1, padx=2, pady=2)
 tk.Button(loadGraphFrame, text="Carga Europa", command=load_europa).grid(row=1, column=0, padx=2, pady=2)
 tk.Button(loadGraphFrame, text="Carga Archivo", command=load_from_file).grid(row=1, column=1, padx=2, pady=2)
-tk.Button(loadGraphFrame, text="Guardar grafo", command=save_to_file).grid(row=2, column=0, columnspan=2, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Guardar grafo", command=save_to_file).grid(row=3, column=0, columnspan=2, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Show Example Graph", command=load_example_graph).grid(row=2, column=1, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Design Graph", command=design_graph).grid(row=2, column=0, padx=2, pady=2)
 
 # --- Operaciones sobre el grafo ---
-graphOpsFrame = tk.LabelFrame(buttons, text="Operaciones sobre el grafo")
+graphOpsFrame = tk.LabelFrame(buttons, text="Operations")
 graphOpsFrame.grid(row=1, column=0, sticky="nswe", pady=3)
-tk.Button(graphOpsFrame, text="Añadir nodo", command=add_node).grid(row=0, column=0, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="Borrar nodo", command=del_node).grid(row=0, column=1, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="Añadir segmento", command=add_segment).grid(row=1, column=0, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="Borrar segmento", command=del_segment).grid(row=1, column=1, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="Mostrar/Ocultar segmentos", command=toggle_segments).grid(row=3, column=0, columnspan=2, padx=2, pady=2)
-
+tk.Button(graphOpsFrame, text="Add Node", command=add_node).grid(row=0, column=0, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="Delete Node", command=del_node).grid(row=0, column=1, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="Add segment", command=add_segment).grid(row=1, column=0, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="Delete segment", command=del_segment).grid(row=1, column=1, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="On/Off segments", command=toggle_segments).grid(row=3, column=0, columnspan=2, padx=2, pady=2)
 
 # --- Consultas ---
-queryFrame = tk.LabelFrame(buttons, text="Consultas")
+queryFrame = tk.LabelFrame(buttons, text="Study")
 queryFrame.grid(row=2, column=0, sticky="nswe", pady=3)
-tk.Button(queryFrame, text="Vecinos", command=show_neighbors).grid(row=0, column=0, padx=2, pady=2)
-tk.Button(queryFrame, text="Alcanzables", command=show_reachable).grid(row=0, column=1, padx=2, pady=2)
-tk.Button(queryFrame, text="Shortest Path", command=shortest_path).grid(row=1, column=0, columnspan=2, padx=2, pady=2)
-tk.Button(queryFrame, text="Limpiar selección", command=clear_selection).grid(row=2, column=0, columnspan=2, padx=2, pady=2)
+tk.Button(queryFrame, text="Neightbors", command=show_neighbors).grid(row=0, column=0, padx=2, pady=2)
+tk.Button(queryFrame, text="Reachable", command=show_reachable).grid(row=0, column=1, padx=2, pady=2)
+tk.Button(queryFrame, text="Shortest Path", command=shortest_path).grid(row=1, column=0, padx=2, pady=2)
+cost_label = tk.Label(queryFrame, text="Cost: -", width=15, anchor="w")
+cost_label.grid(row=1, column=1, padx=2, pady=2)
+tk.Button(queryFrame, text="Clear selection", command=clear_selection).grid(row=2, column=0, columnspan=2, padx=2, pady=2)
 
 # Botones KML
 tk.Button(ctrl, text="KML Cataluña", command=lambda: export_kml("CAT")).pack(fill=tk.X)
@@ -465,7 +587,16 @@ tk.Button(ctrl, text="KML España",   command=lambda: export_kml("ESP")).pack(fi
 tk.Button(ctrl, text="KML Europa",   command=lambda: export_kml("EUR")).pack(fill=tk.X)
 
 # Botón para abrir en Google Earth
-tk.Button(ctrl, text="Abrir en Google Earth", command=open_google_earth).pack(fill=tk.X)
+tk.Button(ctrl, text="Open in Google Earth", command=open_google_earth).pack(fill=tk.X)
+
+# Botón de novedades
+tk.Button(ctrl, text="Extras list", command=show_new_features, fg="blue").pack(fill=tk.X, pady=4)
+
+# Botón para mostrar la foto grupal
+tk.Button(ctrl, text="El team", command=show_group_photo).pack(fill=tk.X, pady=4)
+
+# Botón de estadísticas
+tk.Button(ctrl, text="Graph Stats", command=show_stats).pack(fill=tk.X, pady=4)
 
 # Arranca la aplicación
 root.mainloop()

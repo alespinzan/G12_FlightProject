@@ -1,9 +1,9 @@
-
 # airspace.py
 from navpoint import NavPoint
 from navsegment import NavSegment
 from navairport import NavAirport
-from graph import Graph
+from graph import *
+
 import matplotlib.pyplot as plt
 
 class AirSpace:
@@ -26,19 +26,49 @@ class AirSpace:
 
     def load_airports(self, filepath: str):
         with open(filepath) as f:
+            current_id = None
+            sids = []
+            stars = []
             for line in f:
-                ap = NavAirport.parse_line(line)
-                if ap:
-                    self.airports[ap.id] = ap
+                code = line.strip()
+                if not code:
+                    continue
+                if '.' not in code:  # Es un aeropuerto (ej: LEIB)
+                    # Si ya hay uno anterior, guárdalo
+                    if current_id is not None:
+                        self.airports[current_id] = NavAirport(
+                            id=current_id,
+                            name=current_id,
+                            sids=sids,
+                            stars=stars
+                        )
+                    # Nuevo aeropuerto
+                    current_id = code
+                    sids = []
+                    stars = []
+                elif code.endswith('.D'):
+                    sids.append(code)
+                elif code.endswith('.A'):
+                    stars.append(code)
+            # Guarda el último aeropuerto
+            if current_id is not None:
+                self.airports[current_id] = NavAirport(
+                    id=current_id,
+                    name=current_id,
+                    sids=sids,
+                    stars=stars
+                )
+       
 
     def build_graph(self) -> Graph:
         g = Graph()
         # add NavPoints as nodes
         for np_obj in self.navpoints.values():
-            g.AddNode(np_obj.id, (np_obj.latitude, np_obj.longitude))
+            AddNode(g, node(np_obj.name, np_obj.longitude, np_obj.latitude))
         # add segments
         for seg in self.navsegments:
-            g.AddSegment(seg.origin.id, seg.destination.id, seg.distance)
+            seg_name = f"{seg.origin.name}-{seg.destination.name}"
+            AddSegment(g, seg_name, seg.origin.name, seg.destination.name)
         return g
 
     def shortest_path(self, start_id: str, end_id: str):
@@ -72,4 +102,32 @@ class AirSpace:
         plt.legend(loc="best")
         plt.axis("equal")
         plt.show()
+
+    def find_shortest_path_any(self, start_id: str, end_id: str):
+        """
+        Encuentra el camino más corto entre dos aeropuertos (por sus SIDs/STARs) o entre NavPoints.
+        """
+        g = self.build_graph()
+
+        # Si start_id es aeropuerto, usar sus SIDs como posibles orígenes
+        if start_id in self.airports:
+            start_points = self.airports[start_id].sids or self.airports[start_id].stars
+        else:
+            start_points = [start_id]
+
+        # Si end_id es aeropuerto, usar sus STARs como posibles destinos
+        if end_id in self.airports:
+            end_points = self.airports[end_id].stars or self.airports[end_id].sids
+        else:
+            end_points = [end_id]
+
+        best_path = None
+        best_cost = float('inf')
+        for s in start_points:
+            for e in end_points:
+                path = g.findShortestPath(s, e)
+                if path and hasattr(path, 'cost') and path.cost < best_cost:
+                    best_path = path
+                    best_cost = path.cost
+        return best_path
 

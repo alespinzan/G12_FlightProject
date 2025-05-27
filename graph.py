@@ -67,7 +67,7 @@ def GetClosest(g, x, y):
 def DrawBaseGraph(g, ax):
         for node in g.lnodes:
             ax.plot(node.Ox, node.Oy, 'ko', markersize=3)  # Cambia el tamaño con markersize
-            ax.text(node.Ox + 0.001, node.Oy + 0.001, node.name, fontsize=5.5)
+            ax.text(node.Ox + 0.01, node.Oy + 0.01, node.name, fontsize=5.5)
 
 def drawsegment(g, ax):
 
@@ -105,7 +105,7 @@ def Plot(g):
     ax.grid(False, linestyle='--', linewidth=0.5, color='red')
     plt.show()
     
-def PlotNode(g,nameOrigin):
+def PlotNode(g, nameOrigin, ax):
     origin_node = None
     for node in g.lnodes:
         if node.name == nameOrigin:
@@ -113,10 +113,7 @@ def PlotNode(g,nameOrigin):
             break
 
     if origin_node is None:
-
         return False
-
-    fig, ax = plt.subplots()
 
     for node in g.lnodes:
         if node == origin_node:
@@ -125,42 +122,37 @@ def PlotNode(g,nameOrigin):
         elif node in origin_node.nl:
             ax.plot(node.Ox, node.Oy, 'go')
             ax.text(node.Ox + 0.001, node.Oy + 0.001, node.name, fontsize=10)
-        
 
     for segment in g.lsegments:
         if segment.origin == origin_node:
             x_values = [segment.origin.Ox, segment.destination.Ox]
             y_values = [segment.origin.Oy, segment.destination.Oy]
-
             ax.plot(x_values, y_values, 'r-')
-
             mid_x = (segment.origin.Ox + segment.destination.Ox) / 2
             mid_y = (segment.origin.Oy + segment.destination.Oy) / 2
             ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='black', ha='center')
 
-    ax.set_xlabel('X Coordinate')
-    ax.set_ylabel('Y Coordinate')
-    ax.set_title(f'Graph Visualization: {nameOrigin} and Neighbors')
-    ax.grid(True, linestyle='--', linewidth=0.5, color='gray')
-    plt.show()
+    # No plt.show() aquí
     return True
 
 def readfile(filename):
-
     gr = Graph()
 
     with open(filename, "r") as f:
         for line in f:
-            parts = line.strip().split(",")
-            if len(parts) == 3:
-                name = parts[0].strip()
-                x = float(parts[1])
-                y = float(parts[2])
+            parts = line.strip().split()
+            if not parts or parts[0].startswith("//"):
+                continue  # Saltar líneas vacías o comentarios
+            if parts[0] == "N" and len(parts) == 4:
+                name = parts[1]
+                x = float(parts[2])
+                y = float(parts[3])
                 AddNode(gr, node(name, x, y))
-        for i in range(len(gr.lnodes)):    # Cambiar el addSegmet
-            next_index = (i + 1) % len(gr.lnodes) 
-            AddSegment(gr, gr.lnodes[i].name + "-" + gr.lnodes[next_index].name, gr.lnodes[i].name, gr.lnodes[next_index].name)
-                
+            elif parts[0] == "S" and len(parts) == 4:
+                nameSegment = parts[1]
+                nameOrigin = parts[2]
+                nameDestination = parts[3]
+                AddSegment(gr, nameSegment, nameOrigin, nameDestination)
     return gr
 
 def deleteNode(g, node_name):
