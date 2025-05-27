@@ -34,13 +34,17 @@ AER_EU = os.path.join(BASE_DIR, "ECAC_aer.txt")
 
 # Variables globales
 target_graph: Graph = None
-current_graph: Graph = None  # Añadido para evitar NameError
-last_path = None  # para redraw del último shortest path
-show_segments = False  
-selected_nodes = []  # Para almacenar nodos seleccionados en el gráfico
+current_graph: Graph = None
+last_path = None
+show_segments = False
+selected_nodes = []
 initial_xlim = None
 initial_ylim = None
 dark_mode = False
+
+# NUEVO: Estado de visualización actual
+last_draw_type = None  # "path", "paths", "highlight", "base"
+last_draw_data = None  # datos relevantes (lista de nodos, etc.)
 
 
 # --------------------------------------------------
@@ -64,6 +68,7 @@ def build_from_airspace(nav, seg, aer) -> Graph:
 # Dibujo del grafo en el frame derecho
 # --------------------------------------------------
 def draw_graph(g, pth=None, pths=None, highlight_node=None):
+    global last_draw_type, last_draw_data
     # Limpia el frame de gráficos anterior
     for w in graph_frame.winfo_children():
         w.destroy()
@@ -84,13 +89,30 @@ def draw_graph(g, pth=None, pths=None, highlight_node=None):
     # Si hay un path, lo resalta encima
     if pth is not None:
         PlotPath(g, pth, ax)
+        last_draw_type = "path"
+        # Soporta tanto objeto con .nodes como lista simple
+        if hasattr(pth, "nodes"):
+            last_draw_data = [n.name if hasattr(n, "name") else n for n in pth.nodes]
+        else:
+            last_draw_data = [n.name if hasattr(n, "name") else n for n in pth]
     elif pths is not None:
         PlotPaths(g, pths, ax)
-
-    # --- NUEVO: resalta vecinos si se pide ---
-    if highlight_node is not None:
+        last_draw_type = "paths"
+        last_draw_data = []
+        for path in pths:
+            if hasattr(path, "nodes"):
+                last_draw_data.extend([n.name if hasattr(n, "name") else n for n in path.nodes])
+            else:
+                last_draw_data.extend([n.name if hasattr(n, "name") else n for n in path])
+        last_draw_data = list(set(last_draw_data))
+    elif highlight_node is not None:
         from graph import PlotNode
         PlotNode(g, highlight_node, ax)
+        last_draw_type = "highlight"
+        last_draw_data = [highlight_node]
+    else:
+        last_draw_type = "base"
+        last_draw_data = [n.name for n in g.lnodes]
 
     ax.set_xlabel("Longitud")
     ax.set_ylabel("Latitud")
@@ -482,21 +504,16 @@ def show_stats():
 # Abrir la vista actual en Google Earth
 # --------------------------------------------------
 def open_google_earth():
-    global target_graph, last_path
+    global target_graph, last_draw_type, last_draw_data
     if not target_graph:
         messagebox.showwarning("Error", "No hay grafo cargado.")
         return
     out = os.path.join(BASE_DIR, "view.kml")
-    if last_path:
-        # Extrae la lista de nombres de nodos del objeto Path
-        if hasattr(last_path, 'nodes'):
-            node_names = [n.name if hasattr(n, 'name') else n for n in last_path.nodes]
-        else:
-            node_names = list(last_path)
-        path_to_kml(target_graph, node_names, out)
-    else:
-        graph_to_kml(target_graph, out)
     try:
+        if last_draw_type in ("path", "paths", "highlight") and last_draw_data:
+            path_to_kml(target_graph, last_draw_data, out)
+        else:
+            graph_to_kml(target_graph, out)
         if sys.platform.startswith("win"):
             os.startfile(out)
         elif sys.platform == "darwin":
@@ -510,7 +527,7 @@ def open_google_earth():
 def show_new_features():
     novedades = (
         "Novedades recientes:\n"
-        "- Interacción con el raton en el grafo\n"
+        "- Interacción con el raton en el grafo (pulsar rueda y click izquierdo para moverse)\n"
         "- Boton de enseñar y ocultar segmentos\n"
         "- Boton de estadísticas del grafo"
 

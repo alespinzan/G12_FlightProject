@@ -183,7 +183,6 @@ def deleteNode(g, node_name):
     return True  # Nodo eliminado con éxito
 
 def findShortestPath(g, nameOrigin, nameDestination):
-    
     foundOr = False
     foundDest = False
     i = 0
@@ -192,6 +191,8 @@ def findShortestPath(g, nameOrigin, nameDestination):
             foundOr = True
         else:
             i += 1
+    if not foundOr:
+        return None
     origin = g.lnodes[i]
     d = 0
     while d < len(g.lnodes) and not foundDest:
@@ -199,40 +200,38 @@ def findShortestPath(g, nameOrigin, nameDestination):
             foundDest = True
         else:
             d += 1
+    if not foundDest:
+        return None
     destination = g.lnodes[d]
-   
-    evpaths = []  # Lista de caminos
-    initial_path = Path()  # Crear un camino inicial
-    initial_path.nodes.append(origin)  # Agregar el nodo de origen al camino inicial
-    initial_path.cost = 0  # El costo inicial es 0
-    evpaths.append(initial_path)  # Agregar el camino inicial a la lista de caminos
+
+    evpaths = []
+    initial_path = Path()
+    initial_path.nodes.append(origin)
+    initial_path.cost = 0
+    evpaths.append(initial_path)
+
+    visited = set()  # <--- Añadido
 
     while len(evpaths) > 0:
-        # Ordenar los caminos por costo estimado (costo actual + heurística)
         evpaths.sort(key=lambda p: p.cost + Distance(p.nodes[-1], destination))
-        current_path = evpaths.pop(0)  # Remover el camino con el menor costo y guardarlo
-
-        # Obtener el último nodo del camino actual
+        current_path = evpaths.pop(0)
         current_node = current_path.nodes[-1]
 
-        # Si el último nodo es el destino, devolver el camino actual
+        # Si ya visitamos este nodo con menor o igual coste, saltar
+        if (current_node.name in visited):
+            continue
+        visited.add(current_node.name)
+
         if current_node == destination:
             return current_path
 
-        # Explorar los vecinos del último nodo
         for neighbor in current_node.nl:
-            # Si el vecino ya está en el camino actual, ignorarlo (evitar ciclos)
             if neighbor in current_path.nodes:
                 continue
-
-            # Crear un nuevo camino con el vecino
             new_path = Path()
             new_path.nodes = current_path.nodes.copy()
             new_path.nodes.append(neighbor)
             new_path.cost = current_path.cost + Distance(current_node, neighbor)
-
-            # Agregar el nuevo camino a la lista de caminos
             evpaths.append(new_path)
 
-    # Si la lista de caminos está vacía, no es posible llegar al destino
     return None
