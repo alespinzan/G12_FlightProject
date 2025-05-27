@@ -5,14 +5,11 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
 import subprocess
 
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-from airspace import AirSpace
-from graph import Graph, AddNode, AddSegment
-from node import node
+from airspace import *
+from graph import *
+from node import *
 from path import PlotPath
-from kml_utils import *  # graph_to_kml, path_to_kml
+from kml_utils import graph_to_kml
 
 # --------------------------------------------------
 # Rutas de datos
@@ -57,28 +54,32 @@ def build_from_airspace(nav, seg, aer) -> Graph:
 # --------------------------------------------------
 # Dibujo del grafo en el frame derecho
 # --------------------------------------------------
-def draw_graph(g: Graph, path=None):
-    global target_graph, last_path
-    target_graph = g
-    last_path = path
+def draw_graph(g, pth=None, pths=None):
+    # Limpia el frame de gráficos anterior
+    for w in graph_frame.winfo_children():
+        w.destroy()
 
-    # figura más grande para aprovechar espacio
-    fig = plt.Figure(figsize=(10, 10), dpi=100)
-    ax = fig.add_subplot(1, 1, 1)
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-    # dibujar todos los nodos/segmentos
+    fig = plt.Figure(figsize=(10, 7))
+    ax = fig.add_subplot(111)
+
+    # Dibuja el grafo base siempre
     from graph import DrawBaseGraph
     DrawBaseGraph(g, ax)
-    # si hay camino mínimo, lo sobrepinta
-    if path:
-        PlotPath(g, path, ax)
+
+    # Si hay un path, lo resalta encima
+    if pth is not None:
+        PlotPath(g, pth, ax)
+    elif pths is not None:
+        PlotPaths(g, pths, ax)
 
     ax.set_xlabel("Longitud")
     ax.set_ylabel("Latitud")
     ax.set_title("Visualización de Grafo")
-    ax.grid(True, linestyle="--", linewidth=0.3)
+    ax.grid(True, linestyle='--', linewidth=0.3, color='gray')
 
-    # incrustar en Tk (usando grid para expandir en ambos ejes)
     canvas = FigureCanvasTkAgg(fig, master=graph_frame)
     canvas.draw()
     widget = canvas.get_tk_widget()
@@ -213,38 +214,43 @@ def del_segment():
         messagebox.showinfo("Aviso","Segmento no encontrado")
     draw_graph(target_graph, last_path)
 
-# --------------------------------------------------
-# Vecinos, alcanzables y shortest path
-# --------------------------------------------------
 def show_neighbors():
-    sel = list_nodes.curselection()
-    if not target_graph or not sel:
+    if not target_graph:
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    nm = list_nodes.get(sel[0])
-    neigh = target_graph.GetNeighbors(nm)
-    messagebox.showinfo("Vecinos", "\n".join(neigh) or "(ninguno)")
+    sel = list_nodes.curselection()
+    if not sel:
+        messagebox.showinfo("Select a node", "Selecciona un nodo primero.")
+        return
+    name = list_nodes.get(sel[0])
+    PlotNode(target_graph, name)
 
 def show_reachable():
-    sel = list_nodes.curselection()
-    if not target_graph or not sel:
+    if not target_graph:
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    nm = list_nodes.get(sel[0])
-    reach = target_graph.GetReachable(nm)
-    messagebox.showinfo("Alcanzables", "\n".join(reach) or "(ninguno)")
+    start = simpledialog.askstring("Reachable", "Nodo inicio:")
+    if start:
+        r = ExplorePaths(target_graph, start)
+        if r:
+            draw_graph(target_graph, pths=r)
+        else:
+            messagebox.showinfo("Error", "Nodo no válido.")
 
 def shortest_path():
-    sel = list_nodes.curselection()
-    if not target_graph or not sel:
+    global target_graph, last_path
+    if not target_graph:
+        messagebox.showinfo("Error", "Carga o crea un grafo primero.")
         return
-    src = list_nodes.get(sel[0])
-    dst = simpledialog.askstring("Shortest Path","Destino:")
-    if not dst:
-        return
-    path = target_graph.findShortestPath(src, dst)
-    if path:
-        draw_graph(target_graph, path)
-    else:
-        messagebox.showinfo("Resultado","No existe ruta")
+    start = simpledialog.askstring("Shortest Path", "Nodo inicio:")
+    end = simpledialog.askstring("Shortest Path", "Nodo fin:")
+    if start and end:
+        path = findShortestPath(target_graph, start, end)
+        if path:
+            last_path = path
+            draw_graph(target_graph, pth=path)
+        else:
+            messagebox.showinfo("Error", "No hay ruta.")
 
 # --------------------------------------------------
 # Exportar y abrir KML
@@ -300,48 +306,53 @@ def open_google_earth():
 # --------------------------------------------------
 root = tk.Tk()
 root.title("Airspace Explorer v4")
-# Tamaño inicial de ventana amplio
-root.geometry("1800x900")
+root.geometry("1200x700")
 
-# Panel de controles izquierdo
+# Frames
 ctrl = tk.Frame(root, width=300)
 ctrl.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
-
-# Panel de dibujo derecho
 graph_frame = tk.Frame(root)
 graph_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-# permitir al grid interno expandirse
-graph_frame.grid_rowconfigure(0, weight=1)
-graph_frame.grid_columnconfigure(0, weight=1)
 
-# Listbox de nodos
-tk.Label(ctrl, text="Nodos:").pack(anchor="w")
-list_nodes = tk.Listbox(ctrl, height=15)
-list_nodes.pack(fill=tk.X, pady=2)
 
-# Botones de consulta
-tk.Button(ctrl, text="Vecinos",      command=show_neighbors).pack(fill=tk.X)
-tk.Button(ctrl, text="Alcanzables",  command=show_reachable).pack(fill=tk.X)
-tk.Button(ctrl, text="Shortest Path",command=shortest_path).pack(fill=tk.X, pady=(0,10))
+# Botonera (contenedor de botones y paneles de control)
+buttons = tk.LabelFrame(ctrl, text="control")
+buttons.pack(fill=tk.BOTH, expand=True)
 
-# Botones CRUD
-tk.Button(ctrl, text="Añadir nodo",    command=add_node).pack(fill=tk.X)
-tk.Button(ctrl, text="Borrar nodo",    command=del_node).pack(fill=tk.X)
-tk.Button(ctrl, text="Añadir segmento",command=add_segment).pack(fill=tk.X)
-tk.Button(ctrl, text="Borrar segmento",command=del_segment).pack(fill=tk.X, pady=(0,10))
+# --- Carga de grafos ---
+loadGraphFrame = tk.LabelFrame(buttons, text="Carga de grafos")
+loadGraphFrame.grid(row=0, column=0, sticky="nswe", pady=3)
+tk.Button(loadGraphFrame, text="Carga Cataluña", command=load_catalunya).grid(row=0, column=0, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Carga España", command=load_espana).grid(row=0, column=1, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Carga Europa", command=load_europa).grid(row=1, column=0, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Carga desde TXT", command=load_from_file).grid(row=1, column=1, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Guardar grafo", command=save_to_file).grid(row=2, column=0, columnspan=2, padx=2, pady=2)
 
-# Botones carga/guardado
-tk.Button(ctrl, text="Carga Cat",     command=load_catalunya).pack(fill=tk.X)
-tk.Button(ctrl, text="Carga España",  command=load_espana).pack(fill=tk.X)
-tk.Button(ctrl, text="Carga Europa",  command=load_europa).pack(fill=tk.X)
-tk.Button(ctrl, text="Carga desde TXT",command=load_from_file).pack(fill=tk.X)
-tk.Button(ctrl, text="Guardar grafo", command=save_to_file).pack(fill=tk.X, pady=(0,10))
+# --- Operaciones sobre el grafo ---
+graphOpsFrame = tk.LabelFrame(buttons, text="Operaciones sobre el grafo")
+graphOpsFrame.grid(row=1, column=0, sticky="nswe", pady=3)
+tk.Button(graphOpsFrame, text="Añadir nodo", command=add_node).grid(row=0, column=0, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="Borrar nodo", command=del_node).grid(row=0, column=1, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="Añadir segmento", command=add_segment).grid(row=1, column=0, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="Borrar segmento", command=del_segment).grid(row=1, column=1, padx=2, pady=2)
+
+# --- Listado de nodos ---
+nodesFrame = tk.LabelFrame(graphOpsFrame, text="Nodos")
+nodesFrame.grid(row=2, column=0, columnspan=2, sticky="nswe", pady=2)
+list_nodes = tk.Listbox(nodesFrame, height=7)
+list_nodes.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+
+# --- Consultas ---
+queryFrame = tk.LabelFrame(buttons, text="Consultas")
+queryFrame.grid(row=2, column=0, sticky="nswe", pady=3)
+tk.Button(queryFrame, text="Vecinos", command=show_neighbors).grid(row=0, column=0, padx=2, pady=2)
+tk.Button(queryFrame, text="Alcanzables", command=show_reachable).grid(row=0, column=1, padx=2, pady=2)
+tk.Button(queryFrame, text="Shortest Path", command=shortest_path).grid(row=1, column=0, columnspan=2, padx=2, pady=2)
 
 # Botones KML
 tk.Button(ctrl, text="KML Cataluña", command=lambda: export_kml("CAT")).pack(fill=tk.X)
 tk.Button(ctrl, text="KML España",   command=lambda: export_kml("ESP")).pack(fill=tk.X)
 tk.Button(ctrl, text="KML Europa",   command=lambda: export_kml("EUR")).pack(fill=tk.X)
-tk.Button(ctrl, text="Abrir en Google Earth", command=open_google_earth).pack(fill=tk.X)
 
 # Arranca la aplicación
 root.mainloop()

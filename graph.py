@@ -67,7 +67,7 @@ def GetClosest(g, x, y):
 def DrawBaseGraph(g, ax):
         for node in g.lnodes:
             ax.plot(node.Ox, node.Oy, 'ko', markersize=3)  # Cambia el tamaño con markersize
-            ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=7)
+            ax.text(node.Ox + 0.001, node.Oy + 0.001, node.name, fontsize=5)
 
         # Dibujar los segmentos como flechas
         for segment in g.lsegments:
@@ -79,13 +79,13 @@ def DrawBaseGraph(g, ax):
                 '',  # Sin texto
                 xy=(x_end, y_end), # Coordenadas del destino
                 xytext=(x_start, y_start),  # Coordenadas del origen
-                arrowprops=dict(arrowstyle='->', color='blue', lw=1)  # Estilo de la flecha
+                arrowprops=dict(arrowstyle='->', color='c', lw=1)  # Estilo de la flecha
             )
 
             # Etiqueta del costo en el medio del segmento
             mid_x = (x_start + x_end) / 2
             mid_y = (y_start + y_end) / 2
-            ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=10, color='black', ha='center')
+            # ax.text(mid_x, mid_y, f"{segment.cost:.2f}", fontsize=5, color='black', ha='center')
 
 def Plot(g):
     fig, ax = plt.subplots()  
@@ -116,13 +116,11 @@ def PlotNode(g,nameOrigin):
     for node in g.lnodes:
         if node == origin_node:
             ax.plot(node.Ox, node.Oy, 'bo')
-            ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=10)
+            ax.text(node.Ox + 0.001, node.Oy + 0.001, node.name, fontsize=10)
         elif node in origin_node.nl:
             ax.plot(node.Ox, node.Oy, 'go')
-            ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=10)
-        else:
-            ax.plot(node.Ox, node.Oy, 'ko')
-            ax.text(node.Ox + 0.1, node.Oy + 0.1, node.name, fontsize=10)
+            ax.text(node.Ox + 0.001, node.Oy + 0.001, node.name, fontsize=10)
+        
 
     for segment in g.lsegments:
         if segment.origin == origin_node:
@@ -138,7 +136,7 @@ def PlotNode(g,nameOrigin):
     ax.set_xlabel('X Coordinate')
     ax.set_ylabel('Y Coordinate')
     ax.set_title(f'Graph Visualization: {nameOrigin} and Neighbors')
-    ax.grid(True, linestyle='--', linewidth=0.5, color='red')
+    ax.grid(True, linestyle='--', linewidth=0.5, color='gray')
     plt.show()
     return True
 

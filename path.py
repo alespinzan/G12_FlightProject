@@ -44,47 +44,39 @@ def CosttoNode(pth, Node): # Returns the total cost from the origin of the Path 
     else:
         return -1  
     
-def ExplorePaths(g, startName):
-    
+def ExplorePaths(g, startName, max_depth=10, max_paths=1000):
     startNode = None
-
     for node in g.lnodes:
         if node.name == startName:
             startNode = node
             break
-        else:
-            startNode = False
-    
-    paths = []  # Lista para almacenar los caminos posibles
-    stack = []  # Pila para manejar los nodos y caminos pendientes de explorar
+    if not startNode:
+        return []
 
-    # Inicializar la pila con el nodo inicial y un camino vacío
+    paths = []
+    stack = []
     initial_path = Path()
     stack.append((initial_path, startNode))
 
-    while len(stack) > 0:
-        # Obtener el último elemento de la pila
+    while stack and len(paths) < max_paths:
         currentPath, currentNode = stack.pop()
-
-        # Agregar el nodo actual al camino
         if not ContainsNode(currentPath, currentNode):
             AddNodeToPath(currentPath, currentNode)
-        
-        # Guardar una copia del camino actual
+        # Limitar profundidad
+        if len(currentPath.nodes) > max_depth:
+            continue
+        # Guardar copia del camino actual
         new_path = Path()
         new_path.nodes = currentPath.nodes.copy()
         new_path.name = " -> ".join([node.name for node in new_path.nodes])
         new_path.cost = CosttoNode(currentPath, currentNode)
         paths.append(new_path)
-
-        # Agregar los vecinos del nodo actual a la pila
+        # Explorar vecinos
         for neighbor in currentNode.nl:
-            if not ContainsNode(currentPath, neighbor):  # Evitar ciclos
-                # Crear una copia del camino actual para explorar el vecino
+            if not ContainsNode(currentPath, neighbor):
                 new_path_copy = Path()
                 new_path_copy.nodes = currentPath.nodes.copy()
                 stack.append((new_path_copy, neighbor))
-
     return paths
 
 def PlotPath(Graph, pth, ax):
