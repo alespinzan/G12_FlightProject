@@ -5,7 +5,7 @@
     <Placemark>
       <name>Camino mínimo</name>
       <LineString>
-        <coordinates>0.5883333333,40.2580555556,0</coordinates>
+        <coordinates>1,20,0 8,17,0 12,12,0</coordinates>
       </LineString>
     </Placemark>
   </Document>

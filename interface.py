@@ -529,7 +529,8 @@ def show_new_features():
         "Novedades recientes:\n"
         "- Interacción con el raton en el grafo (pulsar rueda y click izquierdo para moverse)\n"
         "- Boton de enseñar y ocultar segmentos\n"
-        "- Boton de estadísticas del grafo"
+        "- Boton de estadísticas del grafo\n"
+        "- ¿Qué hay abajo del todo?"
 
     )
     messagebox.showinfo("Nuevas funcionalidades", novedades)
@@ -550,6 +551,9 @@ def show_group_photo():
         label.pack()
     except Exception as e:
         messagebox.showerror("Error", f"No se pudo abrir la imagen:\n{e}")
+
+def show_help():
+    messagebox.showinfo("¡Sorpresa!", "¡¡¡Miguel y Rubén, sois unos cracks!!!")
 
 # ------------ Interfase Setup ----------------
 
@@ -614,6 +618,9 @@ tk.Button(ctrl, text="El team", command=show_group_photo).pack(fill=tk.X, pady=4
 
 # Botón de estadísticas
 tk.Button(ctrl, text="Graph Stats", command=show_stats).pack(fill=tk.X, pady=4)
+
+#Botón de funcionalidad extra
+tk.Button(ctrl, text="Clica aquí si eres un máquina", command=show_help).pack(fill=tk.X, pady=4)
 
 # Arranca la aplicación
 root.mainloop()
