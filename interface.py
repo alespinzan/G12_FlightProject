@@ -5,12 +5,13 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog, filedialog
 import subprocess
 from PIL import Image, ImageTk
-
+import matplotlib.image as mpimg
 from airspace import *
 from graph import *
 from node import *
 from path import PlotPath
 from kml_utils import graph_to_kml, path_to_kml
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # --------------------------------------------------
 # Rutas de datos
@@ -41,15 +42,13 @@ selected_nodes = []
 initial_xlim = None
 initial_ylim = None
 dark_mode = False
-
+show_map_bg = False  # Controla si se muestra el mapa de fondo
 # NUEVO: Estado de visualización actual
 last_draw_type = None  # "path", "paths", "highlight", "base"
 last_draw_data = None  # datos relevantes (lista de nodos, etc.)
 
-
-# --------------------------------------------------
 # Construcción de grafo desde AirSpace
-# --------------------------------------------------
+
 def build_from_airspace(nav, seg, aer) -> Graph:
     aspace = AirSpace()
     aspace.load_navpoints(nav)
@@ -64,24 +63,30 @@ def build_from_airspace(nav, seg, aer) -> Graph:
     g._airspace = aspace  # <-- Añade esto
     return g
 
-# --------------------------------------------------
 # Dibujo del grafo en el frame derecho
-# --------------------------------------------------
+
 def draw_graph(g, pth=None, pths=None, highlight_node=None):
     global last_draw_type, last_draw_data
     # Limpia el frame de gráficos anterior
     for w in graph_frame.winfo_children():
         w.destroy()
 
-    import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
     fig = plt.Figure(figsize=(10, 7))
     ax = fig.add_subplot(111)
 
-    # Dibuja el grafo base siempre
-    from graph import DrawBaseGraph, drawsegment
+    # --- Imagen de fondo solo para Cataluña ---
+   
+    map_path = os.path.join(BASE_DIR, "imagenCat.png")
+    if hasattr(g, "_airspace") and getattr(g._airspace, "nav_file", None) == NAV_CAT and show_map_bg:
+        if os.path.exists(map_path):
+            img = mpimg.imread(map_path)
+            ax.imshow(img, extent=(-1.1, 4.3, 38.2, 42.0), aspect='auto', zorder=0)
+        else:
+            messagebox.showwarning("Aviso", "No se encontró la imagen de fondo 'imagenCat.png'.")
+            use_bg = False
 
+    # Dibuja el grafo base siempre
+    
     DrawBaseGraph(g, ax)
     if show_segments:
         drawsegment(g, ax)
@@ -285,9 +290,8 @@ def save_to_file():
     else:
         messagebox.showinfo("Guardado", f"Grafo guardado en:\n{path}")
 
-# --------------------------------------------------
 # Añadir / borrar nodos y segmentos
-# --------------------------------------------------
+
 def add_node():
     if not target_graph:
         messagebox.showinfo("Error", "Carga o crea un grafo primero.")
@@ -441,6 +445,10 @@ def shortest_path():
         if cost_label:
             cost_label.config(text="Coste: -")
 
+def toggle_map_bg():
+    global show_map_bg
+    show_map_bg = not show_map_bg
+    draw_graph(target_graph, last_path)
 
 def clear_selection():
     global selected_nodes
@@ -473,9 +481,8 @@ def export_kml(scope):
     except:
         pass
 
-# --------------------------------------------------
 # Estadísticas del grafo
-# --------------------------------------------------
+
 def show_stats():
     if not target_graph or not hasattr(target_graph, "lnodes") or not hasattr(target_graph, "lsegments"):
         messagebox.showinfo("Estadísticas", "No hay grafo cargado.")
@@ -500,9 +507,8 @@ def show_stats():
     )
     messagebox.showinfo("Estadísticas del grafo", msg)
 
-# --------------------------------------------------
 # Abrir la vista actual en Google Earth
-# --------------------------------------------------
+
 def open_google_earth():
     global target_graph, last_draw_type, last_draw_data
     if not target_graph:
@@ -527,9 +533,10 @@ def open_google_earth():
 def show_new_features():
     novedades = (
         "Novedades recientes:\n"
-        "- Interacción con el raton en el grafo (pulsar rueda y click izquierdo para moverse)\n"
+        "- Interacción con el grafo (pulsar rueda y click izquierdo para moverse)\n"
         "- Boton de enseñar y ocultar segmentos\n"
         "- Boton de estadísticas del grafo\n"
+        "- Botón mapa base de cataluña\n"
         "- ¿Qué hay abajo del todo?"
 
     )
@@ -591,6 +598,7 @@ tk.Button(graphOpsFrame, text="Delete Node", command=del_node).grid(row=0, colum
 tk.Button(graphOpsFrame, text="Add segment", command=add_segment).grid(row=1, column=0, padx=2, pady=2)
 tk.Button(graphOpsFrame, text="Delete segment", command=del_segment).grid(row=1, column=1, padx=2, pady=2)
 tk.Button(graphOpsFrame, text="On/Off segments", command=toggle_segments).grid(row=3, column=0, columnspan=2, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="CAT_Base map", command=toggle_map_bg).grid(row=4, column=0, columnspan=2, padx=2, pady=2)
 
 # --- Consultas ---
 queryFrame = tk.LabelFrame(buttons, text="Study")

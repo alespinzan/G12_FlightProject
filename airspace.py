@@ -12,8 +12,9 @@ class AirSpace:
         self.navsegments = []  # list of NavSegment
         self.airports = {}  # id -> NavAirport
 
-    def load_navpoints(self, filepath: str):
-        with open(filepath) as f:
+    def load_navpoints(self, nav_file):
+        self.nav_file = nav_file
+        with open(nav_file) as f:
             for line in f:
                 np = NavPoint.parse_line(line)
                 self.navpoints[np.id] = np
