@@ -238,24 +238,21 @@ def load_example_graph():
 def load_catalunya():
     global target_graph
     target_graph = build_from_airspace(NAV_CAT, SEG_CAT, AER_CAT)
-    
     draw_graph(target_graph)
+    update_airport_listbox()
 
 def load_espana():
     global target_graph
     target_graph = build_from_airspace(NAV_ES, SEG_ES, AER_ES)
-   
     draw_graph(target_graph)
+    update_airport_listbox()
 
 def load_europa():
     global target_graph
     target_graph = build_from_airspace(NAV_EU, SEG_EU, AER_EU)
-    
     draw_graph(target_graph)
+    update_airport_listbox()
 
-# --------------------------------------------------
-# Carga/guardado genérico desde fichero
-# --------------------------------------------------
 def load_from_file():
     global target_graph
     path = filedialog.askopenfilename(filetypes=[("Gráfo TXT","*.txt")])
@@ -267,9 +264,8 @@ def load_from_file():
     except Exception as e:
         messagebox.showerror("Error al leer", str(e))
         return
-   
     draw_graph(target_graph)
-
+    update_airport_listbox()
 
 def save_to_file():
     if not target_graph:
@@ -481,6 +477,13 @@ def export_kml(scope):
     except:
         pass
 
+def update_airport_listbox():
+    airport_listbox.delete(0, tk.END)
+    airport_listbox.insert(tk.END, "Aeropuertos:")
+    if hasattr(target_graph, "_airspace") and hasattr(target_graph._airspace, "airports"):
+        for aid in target_graph._airspace.airports.keys():
+            airport_listbox.insert(tk.END, aid)
+
 # Estadísticas del grafo
 
 def show_stats():
@@ -582,53 +585,65 @@ buttons.pack(fill=tk.BOTH, expand=True)
 # --- Carga de grafos ---
 loadGraphFrame = tk.LabelFrame(buttons, text="Load graphs")
 loadGraphFrame.grid(row=0, column=0, sticky="nswe", pady=3)
-tk.Button(loadGraphFrame, text="Carga Cataluña", command=load_catalunya).grid(row=0, column=0, padx=2, pady=2)
-tk.Button(loadGraphFrame, text="Carga España", command=load_espana).grid(row=0, column=1, padx=2, pady=2)
-tk.Button(loadGraphFrame, text="Carga Europa", command=load_europa).grid(row=1, column=0, padx=2, pady=2)
-tk.Button(loadGraphFrame, text="Carga Archivo", command=load_from_file).grid(row=1, column=1, padx=2, pady=2)
-tk.Button(loadGraphFrame, text="Guardar grafo", command=save_to_file).grid(row=3, column=0, columnspan=2, padx=2, pady=2)
-tk.Button(loadGraphFrame, text="Show Example Graph", command=load_example_graph).grid(row=2, column=1, padx=2, pady=2)
-tk.Button(loadGraphFrame, text="Design Graph", command=design_graph).grid(row=2, column=0, padx=2, pady=2)
+tk.Button(loadGraphFrame, text="Carga Cataluña", command=load_catalunya).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(loadGraphFrame, text="Carga España", command=load_espana).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(loadGraphFrame, text="Carga Europa", command=load_europa).grid(row=1, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(loadGraphFrame, text="Carga Archivo", command=load_from_file).grid(row=1, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(loadGraphFrame, text="Design Graph", command=design_graph).grid(row=2, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(loadGraphFrame, text="Show Example Graph", command=load_example_graph).grid(row=2, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(loadGraphFrame, text="Guardar grafo", command=save_to_file).grid(row=3, column=0, columnspan=2, padx=2, pady=2, sticky="ew")
+# Lista de aeropuertos
+airport_listbox = tk.Listbox(loadGraphFrame, height=4)
+airport_listbox.grid(row=4, column=0, columnspan=2, sticky="we", padx=2, pady=2)
+airport_listbox.insert(tk.END, "Aeropuertos:")
+loadGraphFrame.columnconfigure(0, weight=1)
+loadGraphFrame.columnconfigure(1, weight=1)
 
 # --- Operaciones sobre el grafo ---
 graphOpsFrame = tk.LabelFrame(buttons, text="Operations")
 graphOpsFrame.grid(row=1, column=0, sticky="nswe", pady=3)
-tk.Button(graphOpsFrame, text="Add Node", command=add_node).grid(row=0, column=0, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="Delete Node", command=del_node).grid(row=0, column=1, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="Add segment", command=add_segment).grid(row=1, column=0, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="Delete segment", command=del_segment).grid(row=1, column=1, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="On/Off segments", command=toggle_segments).grid(row=3, column=0, columnspan=2, padx=2, pady=2)
-tk.Button(graphOpsFrame, text="CAT_Base map", command=toggle_map_bg).grid(row=4, column=0, columnspan=2, padx=2, pady=2)
+tk.Button(graphOpsFrame, text="Add Node", command=add_node).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(graphOpsFrame, text="Delete Node", command=del_node).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(graphOpsFrame, text="Add segment", command=add_segment).grid(row=1, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(graphOpsFrame, text="Delete segment", command=del_segment).grid(row=1, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(graphOpsFrame, text="CAT_Base map", command=toggle_map_bg).grid(row=2, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(graphOpsFrame, text="On/Off segments", command=toggle_segments).grid(row=2, column=1, padx=2, pady=2, sticky="ew")
+graphOpsFrame.columnconfigure(0, weight=1)
+graphOpsFrame.columnconfigure(1, weight=1)
 
 # --- Consultas ---
 queryFrame = tk.LabelFrame(buttons, text="Study")
 queryFrame.grid(row=2, column=0, sticky="nswe", pady=3)
-tk.Button(queryFrame, text="Neightbors", command=show_neighbors).grid(row=0, column=0, padx=2, pady=2)
-tk.Button(queryFrame, text="Reachable", command=show_reachable).grid(row=0, column=1, padx=2, pady=2)
-tk.Button(queryFrame, text="Shortest Path", command=shortest_path).grid(row=1, column=0, padx=2, pady=2)
+tk.Button(queryFrame, text="Neightbors", command=show_neighbors).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(queryFrame, text="Reachable", command=show_reachable).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(queryFrame, text="Shortest Path", command=shortest_path).grid(row=1, column=0, padx=2, pady=2, sticky="ew")
 cost_label = tk.Label(queryFrame, text="Cost: -", width=15, anchor="w")
-cost_label.grid(row=1, column=1, padx=2, pady=2)
-tk.Button(queryFrame, text="Clear selection", command=clear_selection).grid(row=2, column=0, columnspan=2, padx=2, pady=2)
+cost_label.grid(row=1, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(queryFrame, text="Clear selection", command=clear_selection).grid(row=2, column=0, columnspan=2, padx=2, pady=2, sticky="ew")
+queryFrame.columnconfigure(0, weight=1)
+queryFrame.columnconfigure(1, weight=1)
 
-# Botones KML
-tk.Button(ctrl, text="KML Cataluña", command=lambda: export_kml("CAT")).pack(fill=tk.X)
-tk.Button(ctrl, text="KML España",   command=lambda: export_kml("ESP")).pack(fill=tk.X)
-tk.Button(ctrl, text="KML Europa",   command=lambda: export_kml("EUR")).pack(fill=tk.X)
+# --- Botones de extras ---
+extrasFrame = tk.LabelFrame(ctrl, text="Extras")
+extrasFrame.pack(fill=tk.X, side=tk.BOTTOM, pady=(10, 0))
+tk.Button(extrasFrame, text="Graph Stats", command=show_stats).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(extrasFrame, text="Extras list", command=show_new_features, fg="blue").grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(extrasFrame, text="El team", command=show_group_photo).grid(row=1, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(extrasFrame, text="Clica aquí si eres un máquina", command=show_help).grid(row=1, column=1, padx=2, pady=2, sticky="ew")
+extrasFrame.columnconfigure(0, weight=1)
+extrasFrame.columnconfigure(1, weight=1)
 
-# Botón para abrir en Google Earth
-tk.Button(ctrl, text="Open in Google Earth", command=open_google_earth).pack(fill=tk.X)
-
-# Botón de novedades
-tk.Button(ctrl, text="Extras list", command=show_new_features, fg="blue").pack(fill=tk.X, pady=4)
-
-# Botón para mostrar la foto grupal
-tk.Button(ctrl, text="El team", command=show_group_photo).pack(fill=tk.X, pady=4)
-
-# Botón de estadísticas
-tk.Button(ctrl, text="Graph Stats", command=show_stats).pack(fill=tk.X, pady=4)
-
-#Botón de funcionalidad extra
-tk.Button(ctrl, text="Clica aquí si eres un máquina", command=show_help).pack(fill=tk.X, pady=4)
+# --- Botones KML ---
+kmlFrame = tk.LabelFrame(ctrl, text="Exportar KML")
+kmlFrame.pack(fill=tk.X, side=tk.BOTTOM, pady=(10, 0))
+tk.Button(kmlFrame, text="KML Cataluña", command=lambda: export_kml("CAT")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(kmlFrame, text="KML España",   command=lambda: export_kml("ESP")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+tk.Button(kmlFrame, text="KML Europa",   command=lambda: export_kml("EUR")).grid(row=1, column=0, padx=2, pady=2, sticky="ew")
+tk.Button(kmlFrame, text="Open in Google Earth", command=open_google_earth).grid(row=1, column=1, padx=2, pady=2, sticky="ew")
+kmlFrame.columnconfigure(0, weight=1)
+kmlFrame.columnconfigure(1, weight=1)
 
 # Arranca la aplicación
 root.mainloop()
+
+
