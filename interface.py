@@ -546,7 +546,7 @@ def show_new_features():
     messagebox.showinfo("Nuevas funcionalidades", novedades)
 
 def show_group_photo():
-    img_path = os.path.join(BASE_DIR, "foto_grupal.jpg")  
+    img_path = os.path.join(BASE_DIR, "fotoGrupal.jpg")  
     if not os.path.exists(img_path):
         messagebox.showinfo("Foto grupal", "No se ha encontrado la foto grupal en la carpeta del proyecto.")
         return
